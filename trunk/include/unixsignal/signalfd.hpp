@@ -9,10 +9,8 @@
 #include <signal.h>
 #include <unistd.h>
 
-#include <cstring>
 #include <cerrno>
 #include <stdexcept>
-#include <iostream>
 
 namespace unixsignal {
 

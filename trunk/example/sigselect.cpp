@@ -38,7 +38,7 @@ int main(int argc, char const* argv[])
         int const s = select(std::max(intfd, termfd) + 1, &rfds, 0, 0, 0);
         if (s < 0)
         {
-        if (EINTR != errno)
+            if (EINTR != errno)
                 cerr << "select(): " << strerror(errno) << endl;
             continue;
         }
