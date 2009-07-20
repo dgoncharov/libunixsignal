@@ -1,3 +1,8 @@
+// Copyright (c) 2009 Dmitry Goncharov
+//
+// Distributed under the BSD License.
+// (See accompanying file COPYING).
+
 #include <iostream>
 #include <iomanip>
 #include <string>
