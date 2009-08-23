@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([], [], [dgoncharov@github.com])
+AC_INIT([], [], [dgoncharov@users.sourceforge.net])
 AM_INIT_AUTOMAKE([libunixsignal], ["0.0.0"])
 AC_CONFIG_SRCDIR([include/unixsignal/signalfd.hpp])
 AC_CONFIG_HEADERS([config.h])
