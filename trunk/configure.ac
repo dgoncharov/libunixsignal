@@ -104,7 +104,7 @@ else
     CXXFLAGS="$CXXFLAGS -Wall -Werror"
 fi
 
-AC_CONFIG_FILES([Makefile src/Makefile include/Makefile include/unixsignal/Makefile example/Makefile])
+AC_CONFIG_FILES([Makefile include/Makefile example/Makefile])
 
 AC_OUTPUT
 

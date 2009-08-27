@@ -1,4 +1,2 @@
-libunixsignalincludedir = $(includedir)/unixsignal
-
-libunixsignalinclude_HEADERS = signalfd.hpp signal_handler.hpp
+nobase_include_HEADERS = $(top_srcdir)/include/unixsignal/signalfd.hpp $(top_srcdir)/include/unixsignal/signal_handler.hpp
 

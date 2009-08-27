@@ -1,9 +1,8 @@
-bin_PROGRAMS = sigselect sighandler
+noinst_PROGRAMS = sigselect sighandler fdreactor
 sigselect_SOURCES = sigselect.cpp
 sighandler_SOURCES = sighandler.cpp
+fdreactor_SOURCES = fdreactor.cpp
 INCLUDES = -I$(top_builddir)/include
 #AM_CFLAGS = -O0
 #sigselect_LDFLAGS =
-sigselect_LDADD = $(top_builddir)/src/libunixsignal.la
-sighandler_LDADD = $(top_builddir)/src/libunixsignal.la
 
