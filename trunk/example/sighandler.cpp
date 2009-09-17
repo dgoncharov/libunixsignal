@@ -20,10 +20,11 @@ using std::flush;
 namespace ba = boost::asio;
 namespace bap = boost::asio::posix;
 
-void on_signal(boost::system::error_code const& error, int signo)
+void on_signal(boost::system::error_code const& error, int signo, int* invoked)
 {
     if (!error)
-        cout << "signal #" << signo << " received" << endl << "# " << flush;;
+        cout << "signal #" << signo << " received" << endl << "# " << flush;
+    *invoked = 1;
 }
 
 void on_stdin(boost::system::error_code const& error, char const* buf, std::size_t buflen, int* running)
@@ -45,7 +46,7 @@ void on_stdin(boost::system::error_code const& error, char const* buf, std::size
    }
 }
 
-int main(int argc, char const* argv[])
+int main(int, char const* [])
 {
     ba::io_service ios;
 
@@ -57,12 +58,22 @@ int main(int argc, char const* argv[])
     cout << "Type to watch stdin activity. Send signals to watch the program react. Use ^D to exit" << endl << "# " << flush;
 
     int running = 1;
+    int sigint_restart_wait = 1;
+    int sigterm_restart_wait = 1;
     while (running)
     {
         ios.reset();
 
-        sigint.async_wait(boost::bind(on_signal, _1, SIGINT));
-        sigterm.async_wait(boost::bind(on_signal, _1, SIGTERM));
+        if (sigint_restart_wait)
+        {
+            sigint_restart_wait = 0;
+            sigint.async_wait(boost::bind(on_signal, _1, SIGINT, &sigint_restart_wait));
+        }
+        if (sigterm_restart_wait)
+        {
+            sigterm_restart_wait = 0;
+            sigterm.async_wait(boost::bind(on_signal, _1, SIGTERM, &sigterm_restart_wait));
+        }
 
         char buf[1024];
         std_in.async_read_some(ba::buffer(buf, sizeof buf), boost::bind(on_stdin, _1, buf, _2, &running));
@@ -71,5 +82,4 @@ int main(int argc, char const* argv[])
     }
     cout << " Bye" << endl;
 }
-
 
