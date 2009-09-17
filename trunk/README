@@ -28,6 +28,9 @@ Type make check to run the unit test.
 
 The original proposal on the boost mail list can be found here.  http://lists.boost.org/Archives/boost/2009/03/149890.php
 
+Known bugs:
+When _GLIBCXX_DEBUG is defined the boost::asio library crashes with the following error "attempt to copy-construct an iterator from a singular iterator".
+
 Tested on
 -amd64 freebsd 7.2 gcc-4.1.2
 -x86_64 linux 2.6.30-gentoo-r4 gcc-4.4.1
