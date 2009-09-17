@@ -24,6 +24,7 @@ Type make uninstall to remove the library installed header files.
 Type make sample to build the samples.
 This will build sigselect from example/sigselect.cpp and sighandler from example/sighandler.cpp.
 You can run the examples by typing example/sigselect or example/sighandler.
+Type make check to run the unit test.
 
 The original proposal on the boost mail list can be found here.  http://lists.boost.org/Archives/boost/2009/03/149890.php
 
