@@ -62,7 +62,7 @@ private:
     signalfd<Signo>& operator=(signalfd<Signo> const&);
 
 private:
-    static void on_signal(int signo)
+    static void on_signal(int)
     {
         // If this callback invokes anything that can throw an exception
         // embrace it with a try-catch block.
