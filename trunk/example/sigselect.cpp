@@ -23,7 +23,7 @@ using std::endl;
 using std::cerr;
 using std::flush;
 
-int main(int argc, char const* argv[])
+int main(int, char const* [])
 {
     unixsignal::signalfd<SIGINT> sigint;
     int const intfd = sigint.fd();
