@@ -53,12 +53,6 @@ AC_CHECK_HEADERS([ \
     boost/test/unit_test.hpp],,
     AC_MSG_ERROR([You need to have the boost headers installed]))
 
-AH_TOP([
-#ifndef CONFIG_H
-#define CONFIG_H])
-AH_BOTTOM([#endif /* CONFIG_H */])
-CXXFLAGS="$CXXFLAGS -include config.h"
-
 BOOST_NOT_FOUND_ERRMSG="You need to install the boost libraries. The boost libraries can be obtained from boost.org"
 
 save_LIBS="$LIBS"
@@ -87,6 +81,12 @@ int main() {boost::system::error_code c; return 0;}
      AC_MSG_ERROR([Can't find the boost_system library. $BOOST_NOT_FOUND_ERRMSG])]
 )
 LIBS="$save_LIBS -lboost_system"
+
+AH_TOP([
+#ifndef CONFIG_H
+#define CONFIG_H])
+AH_BOTTOM([#endif /* CONFIG_H */])
+CXXFLAGS="$CXXFLAGS -include config.h"
 
 AC_MSG_CHECKING(whether to build with debug information)
 debuger=no
