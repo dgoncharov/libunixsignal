@@ -34,7 +34,10 @@ public:
         s = sigaction(Signo, &act, &m_oldact);
         if (s < 0)
         {
-            throw std::runtime_error(strerror(errno));
+            int const err = errno;
+            close(m_pipe[0]);
+            close(m_pipe[1]);
+            throw std::runtime_error(strerror(err));
         }
     }
 
