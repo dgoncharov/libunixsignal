@@ -15,24 +15,34 @@
 #include <vector>
 #include <utility>
 #include <stdexcept>
-#include <iostream>
-//#include <boost/preprocessor/slot/counter.hpp>
-
 
 namespace unixsignal {
 
-
-//template <int Unique = BOOST_PP_COUNTER>
+template <int Signo>
 class multisignalfd
 {
 public:
-    explicit multisignalfd(int signo, ...)
+    explicit multisignalfd(int signo = 0, ...)
     {
         int s = pipe(m_pipe);
         if (s < 0)
         {
             throw std::runtime_error(strerror(errno));
         }
+
+        struct sigaction act, oldact;
+        std::memset(&act, 0, sizeof act);
+        std::memset(&oldact, 0, sizeof oldact);
+        act.sa_handler = multisignalfd<Signo>::on_signal;
+
+        //TODO: error handling and ex safety
+        s = sigaction(Signo, &act, &oldact);
+        if (s < 0)
+        {
+            //TODO: error handling and ex safety
+            throw std::runtime_error(strerror(errno));
+        }
+        m_oldacts.push_back(std::make_pair(Signo, oldact));
 
         va_list ap;
         va_start(ap, signo);
@@ -44,9 +54,13 @@ public:
             act.sa_handler = multisignalfd::on_signal;
 
             //TODO: error handling and ex safety
-            s = sigaction(signo, &act, &oldact);
+            int const s = sigaction(signo, &act, &oldact);
+            if (s < 0)
+            {
+                //TODO: error handling and ex safety
+                throw std::runtime_error(strerror(errno));
+            }
             m_oldacts.push_back(std::make_pair(signo, oldact));
-            m_fds[signo] = m_pipe[1];
             signo = va_arg(ap, int);
         }
         va_end(ap);
@@ -88,21 +102,18 @@ private:
         // The return value is ignored, because if write() fails,
         // there is, probably, nothing useful that can be done.
 //TODO: write in a loop until success or failure, resume on EINTR
-        int const s = write(m_fds[signo], &signo, sizeof signo);
+        int const s = write(m_pipe[1], &signo, sizeof signo);
         (void) s; // Suppress unused variable warning.
     }
-    int m_pipe[2];
-    static int m_fds[100];
+    static int m_pipe[2];
 
 private:
     typedef std::vector<std::pair<int, struct sigaction> > actlist_t;
     actlist_t m_oldacts;
 };
 
-int multisignalfd::m_fds[100];
-// template <int Unique>
-// int multisignalfd<Unique>::m_fds[100];
-// #include BOOST_PP_UPDATE_COUNTER()
+template <int Signo>
+int multisignalfd<Signo>::m_pipe[2];
 }
 
 #endif // UNIXSIGNAL_MULTISIGNALFD_HPP
