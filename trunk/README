@@ -1,4 +1,4 @@
-Intoduction:
+Introduction:
 This library lets you associate a unix signal with a file descriptor
 and have the file descriptor ready for reading whenever an associated unix signal arrives.
 This ability lets you multiplex unix signals just like file descriptors.
