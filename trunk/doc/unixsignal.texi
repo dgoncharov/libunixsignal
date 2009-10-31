@@ -1,0 +1,222 @@
+\input texinfo
+@setfilename unixsignal.info
+@include version.texi
+@settitle unixsignal @value{VERSION}
+@syncodeindex pg cp
+
+@copying
+This manual is for libunixsignal (version @value{VERSION}, @value{UPDATED}).
+
+Copyright @copyright{} 2009 Dmitry Goncharov.
+Distributed under the BSD license.
+
+@ignore
+@quotation
+@end quotation
+@end ignore
+@end copying
+
+@dircategory ????
+@direntry
+* unixsignal: unixsignal.
+@end direntry
+
+@titlepage
+@title unixsignal
+@subtitle for version @value{VERSION}, @value{UPDATED}
+@author Dmitry Goncharov (@email{dgoncharov@@users.sourceforge.net})
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top unixsignal
+
+This manual is for libunixsignal (version @value{VERSION}, @value{UPDATED}).
+@end ifnottex
+
+@menu
+* Introduction::
+* Motivation::
+* signalfd::
+* signal_handler::
+* Index::
+@end menu
+
+
+@node Introduction
+@chapter Introduction
+@cindex Introduction
+This library lets you associate a unix signal with a file descriptor
+and have the file descriptor ready for reading whenever the associated unix signal arrives.
+This lets multiplex unix signals just like file descriptors.
+This library also extends boost::asio with the ability to invoke a handler whenever a unix signal arrives.
+
+
+@node Motivation
+@chapter Motivation
+@cindex Motivation
+Motivation for this library was the need for a unix signal handler of an arbitrary signature.
+Another factor was the need to invoke syscalls which are not async-signal safe from a signal handler. 
+
+@node signalfd
+@chapter signalfd
+@cindex signalfd
+
+
+@b{Synopsys}
+
+
+@example
+// Header file <unixsignal/signalfd.hpp>
+namespace unixsignal @{
+
+template <int Signo>
+class signalfd
+@{
+public:
+    signalfd();
+    ~signalfd();
+
+    int fd() const;
+
+private:
+    signalfd(signalfd<Signo> const&);
+    signalfd<Signo>& operator=(signalfd<Signo> const&);
+@};
+
+@}
+@end example
+
+
+@b{Description}
+
+
+@example
+Class template signalfd creates a file descriptor and associates it with a signal specified by the template parameter Signo.
+This file descriptor becomes ready for reading each time the associated signal arrives.
+Users can use select/poll multiplexing to wait for this file descriptor to become reading for reading.
+Users should read sizeof(char) bytes from this file descriptor after it became ready for reading.
+If the user fails to read sizeof(char) bytes from the file descriptor after it became ready for reading
+the descriptor effectively remains in the ready for reading state.
+In this case select/poll multiplexing mechanism will immediately return this file descriptor as ready for reading.
+Users must not close this file descriptor. 
+
+signalfd is neither copyable nor assignable.
+
+@end example
+
+signalfd()
+
+@example
+Effects: Creates an instance of signalfd. Sets the disposition of the specified signal Signo to a pointer to a function.
+         Creates a file descritor and assiciated it with the specified signal.
+Postconditions: this->fd() return the file descriptor associated with the signal.
+Throws: boost::system_error if one of the syscalls fails. If an exception is thrown the signal disposition remains intact.
+@end example
+
+~signalfd()
+
+@example
+Effects: Restores the original signal disposition. Closes the file descriptor.
+Throws: Does not throw.
+@end example
+
+int fd()
+
+@example
+Returns: The file descriptor associated with the signal.
+Throws: Does not throw.
+@end example
+
+
+@b{Example}
+
+
+@example
+#include <sys/select.h>
+#include <signal.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cerrno>
+#include <cstring>
+
+#include <iostream>
+#include <iomanip>
+#include <string>
+
+#include <unixsignal/signalfd.hpp>
+
+using std::cout;
+using std::cin;
+using std::endl;
+using std::cerr;
+using std::flush;
+
+int main(int, char const* [])
+@{
+    unixsignal::signalfd<SIGINT> sigint;
+    int const intfd = sigint.fd();
+
+    unixsignal::signalfd<SIGTERM> sigterm;
+    int const termfd = sigterm.fd();
+
+    cout << "Type to watch stdin activity. Send signals to watch the program react. Use ^D to exit" << endl << "# " << flush;
+    while (std::cin)
+    @{
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(STDIN_FILENO, &rfds);
+        FD_SET(intfd, &rfds);
+        FD_SET(termfd, &rfds);
+
+        int const s = select(std::max(intfd, termfd) + 1, &rfds, 0, 0, 0);
+        if (s < 0)
+        @{
+            if (EINTR != errno)
+                cerr << "select(): " << strerror(errno) << endl;
+            continue;
+        @}
+        if (FD_ISSET(0, &rfds))
+        @{
+            std::string s;
+            std::getline(cin, s);
+            cout << "activity on stdin: " << s << endl;
+        @}
+        else if (FD_ISSET(intfd, &rfds))
+        @{
+            cout << "sigint received" << endl;
+            char c;
+            int const s = read(intfd, &c, sizeof c);
+            if (s < 0)
+                cerr << "Cannot read from intfd: read(): " << strerror(errno) << endl;
+        @}
+        else if (FD_ISSET(termfd, &rfds))
+        @{
+            cout << "sigterm received" << endl;
+            char c;
+            int const s = read(termfd, &c, sizeof c);
+            if (s < 0)
+                cerr << "Cannot read from termfd: read(): " << strerror(errno) << endl;
+        @}
+        cout << "# " << flush;
+    @}
+    cout << "\nstdin closed. Bye" << endl;
+@}
+@end example
+
+@node signal_handler
+@chapter signal_handler
+@cindex signal_handler
+
+@node Index
+@chapter Index
+@printindex cp
+
+@bye
+

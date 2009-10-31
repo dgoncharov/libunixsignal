@@ -1,4 +1,4 @@
-SUBDIRS = include example test
+SUBDIRS = include example test doc
 
 ACLOCAL_AMFLAGS = -I m4
 

@@ -108,7 +108,7 @@ else
 fi
 CXXFLAGS="$CXXFLAGS -Wall -Wextra -Werror"
 
-AC_CONFIG_FILES([Makefile include/Makefile example/Makefile test/Makefile])
+AC_CONFIG_FILES([Makefile include/Makefile example/Makefile test/Makefile doc/Makefile])
 
 AC_OUTPUT
 
