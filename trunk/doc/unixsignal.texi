@@ -41,38 +41,31 @@ This manual is for libunixsignal (version @value{VERSION}, @value{UPDATED}).
 
 @menu
 * Introduction::
-* Motivation::
-* signalfd::
-* signal_handler::
-* Index::
+* Header <unixsignal/signalfd.hpp>::
+* Header <unixsignal/signal_handler.hpp>::
 @end menu
 
 
 @node Introduction
 @chapter Introduction
-@cindex Introduction
 This library lets you associate a unix signal with a file descriptor
 and have the file descriptor ready for reading whenever the associated unix signal arrives.
 This lets multiplex unix signals just like file descriptors.
 This library also extends boost::asio with the ability to invoke a handler whenever a unix signal arrives.
 
+Motivation for this library was the need to pass user data to a signal handler.
+Another factor was the need to invoke syscalls which are not async-signal-safe from a signal handler. 
 
-@node Motivation
-@chapter Motivation
-@cindex Motivation
-Motivation for this library was the need for a unix signal handler of an arbitrary signature.
-Another factor was the need to invoke syscalls which are not async-signal safe from a signal handler. 
+The library uses the following syscalls pipe(), sigaction(), close(), read(), write() and is portable as long as these syscalls are portable.
+The library consists of two header files unixsignal/signalfd.hpp and unixsignal/signal_handler.hpp.
 
-@node signalfd
-@chapter signalfd
-@cindex signalfd
-
+@node Header <unixsignal/signalfd.hpp>
+@chapter Header <unixsignal/signalfd.hpp>
 
 @b{Synopsys}
 
 
 @example
-// Header file <unixsignal/signalfd.hpp>
 namespace unixsignal @{
 
 template <int Signo>
@@ -124,9 +117,10 @@ Throws: boost::system_error if one of the syscalls fails. If an exception is thr
 @example
 Effects: Restores the original signal disposition. Closes the file descriptor.
 Throws: Does not throw.
+Postconditions: The original signal disposition is restored.
 @end example
 
-int fd()
+int fd() const
 
 @example
 Returns: The file descriptor associated with the signal.
@@ -210,13 +204,16 @@ int main(int, char const* [])
 @}
 @end example
 
-@node signal_handler
-@chapter signal_handler
-@cindex signal_handler
 
-@node Index
-@chapter Index
-@printindex cp
+@b{Note}
+
+
+@example
+linux features nonstandard syscall signalfd() which creates a file descriptor for accepting signals. This syscall inspired the name of class template signalfd.
+@end example
+
+@node Header <unixsignal/signal_handler.hpp>
+@chapter Header <unixsignal/signal_handler.hpp>
 
 @bye
 
