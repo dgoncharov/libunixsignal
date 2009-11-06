@@ -25,11 +25,8 @@ using std::flush;
 
 int main(int, char const* [])
 {
-    unixsignal::signalfd<SIGINT> sigint;
-    int const intfd = sigint.fd();
-
-    unixsignal::signalfd<SIGTERM> sigterm;
-    int const termfd = sigterm.fd();
+    unixsignal::signalfd<SIGINT, SIGTERM> sig;
+    int const fd = sig.fd();
 
     cout << "Type to watch stdin activity. Send signals to watch the program react. Use ^D to exit" << endl << "# " << flush;
     while (std::cin)
@@ -37,10 +34,9 @@ int main(int, char const* [])
         fd_set rfds;
         FD_ZERO(&rfds);
         FD_SET(STDIN_FILENO, &rfds);
-        FD_SET(intfd, &rfds);
-        FD_SET(termfd, &rfds);
+        FD_SET(fd, &rfds);
 
-        int const s = select(std::max(intfd, termfd) + 1, &rfds, 0, 0, 0);
+        int const s = select(fd + 1, &rfds, 0, 0, 0);
         if (s < 0)
         {
             if (EINTR != errno)
@@ -53,21 +49,17 @@ int main(int, char const* [])
             std::getline(cin, s);
             cout << "activity on stdin: " << s << endl;
         }
-        else if (FD_ISSET(intfd, &rfds))
+        else if (FD_ISSET(fd, &rfds))
         {
-            cout << "sigint received" << endl;
+            cout << "received signal";
             siginfo_t siginfo;
-            int const s = read(intfd, &siginfo, sizeof siginfo);
-            if (s != 0)
-                cerr << "Cannot read from intfd: read(): " << strerror(errno) << endl;
-        }
-        else if (FD_ISSET(termfd, &rfds))
-        {
-            cout << "sigterm received" << endl;
-            siginfo_t siginfo;
-            int const s = read(termfd, &siginfo, sizeof siginfo);
+            int s;
+            while ((s = read(fd, &siginfo, sizeof siginfo)) < 0 && EINTR == errno);
             if (s < 0)
-                cerr << "Cannot read from termfd: read(): " << strerror(errno) << endl;
+                cerr << "\nCannot read from fd: read(): " << strerror(errno) << endl;
+            if (static_cast<size_t>(s) < sizeof siginfo)
+                cerr << "\nCannot read the whole siginfo_t struct. read " << s << " bytes" << endl;
+            cout << " #" << siginfo.si_signo << endl;
         }
         cout << "# " << flush;
     }

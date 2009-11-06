@@ -50,8 +50,7 @@ int main(int, char const* [])
 {
     ba::io_service ios;
 
-    unixsignal::signal_handler<SIGINT> sigint(ios);
-    unixsignal::signal_handler<SIGTERM> sigterm(ios);
+    unixsignal::signal_handler<SIGINT, SIGTERM> sig(ios);
 
     bap::stream_descriptor std_in(ios, STDIN_FILENO);
 
@@ -59,7 +58,6 @@ int main(int, char const* [])
 
     int running = 1;
     int sigint_restart_wait = 1;
-    int sigterm_restart_wait = 1;
     while (running)
     {
         ios.reset();
@@ -67,12 +65,7 @@ int main(int, char const* [])
         if (sigint_restart_wait)
         {
             sigint_restart_wait = 0;
-            sigint.async_wait(boost::bind(on_signal, _1, _2, &sigint_restart_wait));
-        }
-        if (sigterm_restart_wait)
-        {
-            sigterm_restart_wait = 0;
-            sigterm.async_wait(boost::bind(on_signal, _1, _2, &sigterm_restart_wait));
+            sig.async_wait(boost::bind(on_signal, _1, _2, &sigint_restart_wait));
         }
 
         char buf[1024];
