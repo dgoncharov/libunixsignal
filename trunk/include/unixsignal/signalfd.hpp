@@ -13,8 +13,6 @@
 #include <boost/static_assert.hpp>
 #include <boost/system/system_error.hpp>
 
-#include <iostream>
-
 namespace unixsignal {
 
 
@@ -47,7 +45,6 @@ public:
         std::memset(&act, 0, sizeof act);
         std::memset(&m_oldact, 0, sizeof m_oldact);
         act.sa_flags = SA_SIGINFO;
-//        act.sa_handler = this_type::on_signal;
         act.sa_sigaction = this_type::on_signal;
 
         int const signals[] = {
@@ -114,10 +111,7 @@ private:
         // embrace it with a try-catch block.
         // The return value is ignored, because
         // if write() fails there is, probably, nothing useful that can be done.
-        std::cout << "signalfd arrived signal #" << siginfo->si_signo << std::endl;
-        int s;
-        while ((s = write(m_pipe[1], siginfo, sizeof *siginfo)) < 0 && EINTR == errno);
-        std::cout << "s: " << s << ", sizeof *siginfo: " << sizeof *siginfo << std::endl;
+        while (write(m_pipe[1], siginfo, sizeof *siginfo) && EINTR == errno);
     }
     static int m_pipe[2];
 

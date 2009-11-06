@@ -58,7 +58,7 @@ int main(int, char const* [])
             cout << "sigint received" << endl;
             siginfo_t siginfo;
             int const s = read(intfd, &siginfo, sizeof siginfo);
-            if (s != 0)
+            if (s < 0)
                 cerr << "Cannot read from intfd: read(): " << strerror(errno) << endl;
         }
         else if (FD_ISSET(termfd, &rfds))

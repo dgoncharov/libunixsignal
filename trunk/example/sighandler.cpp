@@ -78,7 +78,7 @@ int main(int, char const* [])
         char buf[1024];
         std_in.async_read_some(ba::buffer(buf, sizeof buf), boost::bind(on_stdin, _1, buf, _2, &running));
 
-        ios.poll();
+        ios.run_one();
     }
     cout << " Bye" << endl;
 }

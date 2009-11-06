@@ -13,8 +13,6 @@
 #include <boost/asio/read.hpp>
 #include <unixsignal/signalfd.hpp>
 
-#include <iostream>
-
 namespace unixsignal {
 
 template <
@@ -26,12 +24,6 @@ template <
     int S26 = 0, int S27 = 0, int S28 = 0, int S29 = 0, int S30 = 0>
 class signal_handler
 {
-private:
-    typedef signal_handler<
-        S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
-        S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
-        S21, S22, S23, S24, S25, S26, S27, S28, S29, S30> this_type;
-
 public:
     explicit signal_handler(boost::asio::io_service& ios)
         : m_sd(ios, m_sigfd.fd())
@@ -40,19 +32,8 @@ public:
     template <typename Handler>
     void async_wait(Handler h)
     {
-//        boost::asio::async_read(m_sd, boost::asio::buffer(&m_buf, sizeof m_buf), h);
-//        boost::asio::async_read(m_sd, boost::asio::buffer(&m_buf, sizeof m_buf), boost::bind(&this_type::on_signal<Handler>, this, _1, boost::protect(h)));
-        std::cout << "reading from " << std::endl;
         boost::asio::async_read(m_sd, boost::asio::buffer(&m_buf, sizeof m_buf), boost::bind(h, _1, &m_buf));
-//        boost::asio::async_read(m_sd, boost::asio::buffer(&m_buf, sizeof m_buf),  boost::bind(&this_type::on_signal, this, _1));
     }
-
-private:
-//     template <typename Handler>
-//     void on_signal(boost::system::error_code const& error, Handler h)
-//     {
-//         h(error, m_buf);
-//     }
 
 private:
     signalfd<

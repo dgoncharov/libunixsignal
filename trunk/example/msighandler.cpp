@@ -57,21 +57,21 @@ int main(int, char const* [])
     cout << "Type to watch stdin activity. Send signals to watch the program react. Use ^D to exit" << endl << "# " << flush;
 
     int running = 1;
-    int sigint_restart_wait = 1;
+    int sig_restart_wait = 1;
     while (running)
     {
         ios.reset();
 
-        if (sigint_restart_wait)
+        if (sig_restart_wait)
         {
-            sigint_restart_wait = 0;
-            sig.async_wait(boost::bind(on_signal, _1, _2, &sigint_restart_wait));
+            sig_restart_wait = 0;
+            sig.async_wait(boost::bind(on_signal, _1, _2, &sig_restart_wait));
         }
 
         char buf[1024];
         std_in.async_read_some(ba::buffer(buf, sizeof buf), boost::bind(on_stdin, _1, buf, _2, &running));
 
-        ios.poll();
+        ios.run_one();
     }
     cout << " Bye" << endl;
 }
