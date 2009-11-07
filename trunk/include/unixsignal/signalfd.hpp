@@ -111,7 +111,8 @@ private:
         // embrace it with a try-catch block.
         // The return value is ignored, because
         // if write() fails there is, probably, nothing useful that can be done.
-        while (write(m_pipe[1], siginfo, sizeof *siginfo) && EINTR == errno);
+        int s = write(m_pipe[1], siginfo, sizeof *siginfo); //TODO: care about return value
+        s = s;
     }
     static int m_pipe[2];
 
