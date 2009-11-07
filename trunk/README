@@ -30,6 +30,7 @@ The original proposal on the boost mail list can be found here.  http://lists.bo
 
 Known bugs:
 When _GLIBCXX_DEBUG is defined the boost::asio library crashes with the following error "attempt to copy-construct an iterator from a singular iterator".
+test_multisignal_handler2() fails on linux for an unknown reason. However, test_multisignal_handler2() passes on freebsd.
 
 Tested on
 -amd64 freebsd 7.2 gcc-4.1.2
