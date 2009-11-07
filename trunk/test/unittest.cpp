@@ -167,7 +167,7 @@ void test_signal_handler()
     }
 }
 
-void test_multisignal_handler()
+void test_multisignal_handler(int n)
 {
     struct local
     {
@@ -185,10 +185,13 @@ void test_multisignal_handler()
 
     unixsignal::signal_handler<SIGINT, SIGTERM> sig(ios);
 
+    for (int i = 0; i < n; ++i)
     {
         ios.reset();
         siginfo_t siginfo;
+        siginfo_t siginfo2;
         std::memset(&siginfo, 0, sizeof siginfo);
+        std::memset(&siginfo2, 0, sizeof siginfo2);
 
         sig.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo));
 
@@ -206,7 +209,6 @@ void test_multisignal_handler()
         BOOST_CHECK(SIGTERM == siginfo.si_signo);
 
         ios.reset();
-        siginfo_t siginfo2;
         std::memset(&siginfo, 0, sizeof siginfo);
         std::memset(&siginfo2, 0, sizeof siginfo2);
         sig.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo));
@@ -222,12 +224,56 @@ void test_multisignal_handler()
     }
 }
 
+void test_multisignal_handler2(int n)
+{
+    struct local
+    {
+        static void on_signal(boost::system::error_code const& error, siginfo_t const* siginfo, siginfo_t* arrived)
+        {
+            std::cout << "arrived signal #" << siginfo->si_signo << std::endl;
+            BOOST_CHECK(!error);
+            *arrived = *siginfo;
+        }
+    };
+
+    cout << BOOST_CURRENT_FUNCTION << endl;
+
+    boost::asio::io_service ios;
+
+    unixsignal::signal_handler<SIGINT, SIGTERM> sig(ios);
+
+    for (int i = 0; i < n; ++i)
+    {
+        ios.reset();
+        siginfo_t siginfo;
+        siginfo_t siginfo2;
+        std::memset(&siginfo, 0, sizeof siginfo);
+        std::memset(&siginfo2, 0, sizeof siginfo2);
+
+        ios.reset();
+        cout << "raising SIGTERM" << endl;
+        raise(SIGTERM);
+        cout << "raising SIGINT" << endl;
+        raise(SIGINT);
+        std::memset(&siginfo, 0, sizeof siginfo);
+        std::memset(&siginfo2, 0, sizeof siginfo2);
+        sig.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo));
+        sig.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo2));
+
+        ios.run();
+        BOOST_CHECK(SIGTERM == siginfo.si_signo);
+        BOOST_CHECK(SIGINT == siginfo2.si_signo);
+    }
+}
+
 bool init_unit_test()
 {
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_signalfd));
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_multisignalfd));
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_signal_handler));
-    boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_multisignal_handler));
+    boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(boost::bind(test_multisignal_handler, 1)));
+    boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(boost::bind(test_multisignal_handler, 1000)));
+    boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(boost::bind(test_multisignal_handler2, 1)));
 
     return true;
 }
