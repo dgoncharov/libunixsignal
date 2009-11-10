@@ -56,7 +56,7 @@ int main(int, char const* [])
             int const s = read(fd, &siginfo, sizeof siginfo);
             if (s < 0)
                 cerr << "\nCannot read from fd: read(): " << strerror(errno) << endl;
-            else if (static_cast<size_t>(s) < sizeof siginfo)
+            else if (static_cast<std::size_t>(s) < sizeof siginfo)
                 cerr << "\nCannot read the whole siginfo_t struct. read " << s << " bytes" << endl;
             else
                 cout << " #" << siginfo.si_signo << endl;

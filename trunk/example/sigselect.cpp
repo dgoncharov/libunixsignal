@@ -60,7 +60,7 @@ int main(int, char const* [])
             int const s = read(intfd, &siginfo, sizeof siginfo);
             if (s < 0)
                 cerr << "Cannot read from intfd: read(): " << strerror(errno) << endl;
-            else if (static_cast<size_t>(s) < sizeof siginfo)
+            else if (static_cast<std::size_t>(s) < sizeof siginfo)
                 cerr << "\nCannot read the whole siginfo_t struct. read " << s << " bytes" << endl;
         }
         else if (FD_ISSET(termfd, &rfds))
@@ -70,7 +70,7 @@ int main(int, char const* [])
             int const s = read(termfd, &siginfo, sizeof siginfo);
             if (s < 0)
                 cerr << "Cannot read from termfd: read(): " << strerror(errno) << endl;
-            else if (static_cast<size_t>(s) < sizeof siginfo)
+            else if (static_cast<std::size_t>(s) < sizeof siginfo)
                 cerr << "\nCannot read the whole siginfo_t struct. read " << s << " bytes" << endl;
         }
         cout << "# " << flush;
