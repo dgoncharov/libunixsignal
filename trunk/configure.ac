@@ -1,4 +1,4 @@
-f#                                               -*- Autoconf -*-
+#                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.62])
@@ -27,7 +27,7 @@ AC_CHECK_HEADERS([\
     AC_MSG_ERROR([You need to have the libc headers installed]))
 
 AC_CHECK_HEADERS([\
-    cerrno cstdio cstdlib cstring iostream iomanip string stdexcept],,
+    cerrno cstring cstddef cassert iostream],,
     AC_MSG_ERROR([You need to have the C++ standard headers installed]))
 
 AC_HEADER_STDBOOL
@@ -46,8 +46,14 @@ fi
 
 AC_CHECK_HEADERS([ \
     boost/bind.hpp \
+    boost/static_assert.hpp \
+    boost/system/system_error.hpp \
+    boost/function.hpp \
+    boost/system/error_code.hpp \
     boost/current_function.hpp \
+    boost/asio/buffer.hpp \
     boost/asio/io_service.hpp \
+    boost/asio/posix/basic_stream_descriptor.hpp \
     boost/asio/posix/stream_descriptor.hpp \
     boost/asio/read.hpp \
     boost/test/unit_test.hpp],,
