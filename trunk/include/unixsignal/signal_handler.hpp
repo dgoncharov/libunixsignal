@@ -6,11 +6,13 @@
 #ifndef UNIXSIGNAL_SIGNAL_HANDLER_HPP
 #define UNIXSIGNAL_SIGNAL_HANDLER_HPP
 
-#include <signal.h>
-#include <list>
+#include <signal.h> // For siginfo_t.
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
+#include <boost/asio/posix/basic_stream_descriptor.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/asio/read.hpp>
 #include <unixsignal/signalfd.hpp>
@@ -33,7 +35,6 @@ private:
         S21, S22, S23, S24, S25, S26, S27, S28, S29, S30> this_type;
 
     typedef boost::function<void (boost::system::error_code const&, siginfo_t const&)> cb_t;
-    typedef std::list<siginfo_t> siginfo_list_t;
 
 public:
     explicit signal_handler(boost::asio::io_service& ios)
@@ -44,22 +45,26 @@ public:
     void async_wait(Handler h)
     {
         cb_t f(h);
-        siginfo_list_t::iterator it = m_bufs.insert(m_bufs.end(), siginfo_t());
-        boost::asio::async_read(m_sd, boost::asio::buffer(&*it, sizeof *it), boost::bind(&this_type::on_sig, this, _1, f, it));
+        boost::asio::async_read(m_sd, boost::asio::null_buffers(), boost::bind(&this_type::on_sig, this, _1, f));
     }
 
 private:
-    void on_sig(boost::system::error_code const& e, cb_t const& f, siginfo_list_t::iterator it)
+    void on_sig(boost::system::error_code const& error, cb_t const& f)
     {
-        try
+        if (error)
         {
-            f(e, *it);
-            m_bufs.erase(it);
+            f(error, siginfo_t());
+            return;
         }
-        catch (...)
+        boost::asio::posix::descriptor_base::bytes_readable cmd;
+        m_sd.io_control(cmd);
+        std::size_t const nbytes = cmd.get();
+        if (nbytes >= sizeof(siginfo_t))
         {
-            m_bufs.erase(it);
-            throw;
+            siginfo_t siginfo;
+            std::size_t const n = boost::asio::read(m_sd, boost::asio::buffer(&siginfo, sizeof siginfo));
+            if (sizeof siginfo == n)
+                f(error, siginfo);
         }
     }
 
@@ -69,7 +74,6 @@ private:
         S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
         S21, S22, S23, S24, S25, S26, S27, S28, S29, S30> m_sigfd;
     boost::asio::posix::stream_descriptor m_sd;
-    siginfo_list_t m_bufs;
 };
 
 } // namespace unixsignal
