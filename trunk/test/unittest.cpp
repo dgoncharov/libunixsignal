@@ -7,7 +7,6 @@
 #include <iostream>
 #include <boost/current_function.hpp>
 #include <boost/bind.hpp>
-//#define BOOST_ASIO_DISABLE_EPOLL
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
@@ -277,7 +276,6 @@ void test_multisignal_handler2(int n)
         BOOST_CHECK(SIGINT == siginfo2.si_signo);
     }
 }
-
 /*
 void test_stream_descriptor()
 {
@@ -311,7 +309,11 @@ void test_stream_descriptor()
         int const s3 = ::write(p[1], &c, sizeof c);
         BOOST_CHECK(sizeof c == s3);
     }
-    
+    int nbytes = 77;
+    int const s1 = ioctl(p[0], FIONREAD, &nbytes);
+    BOOST_CHECK(0 == s1);
+    cout << "nbytes: " << nbytes << endl;
+
     boost::asio::io_service ios;
     ios.reset();
 
