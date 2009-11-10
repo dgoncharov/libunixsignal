@@ -10,6 +10,9 @@
 #include <unistd.h>
 
 #include <cerrno>
+#include <cstring>
+#include <cstddef>
+#include <cassert>
 #include <boost/static_assert.hpp>
 #include <boost/system/system_error.hpp>
 
@@ -52,7 +55,7 @@ public:
             S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
             S21, S22, S23, S24, S25, S26, S27, S28, S29, S30};
         BOOST_STATIC_ASSERT((nsignals <= sizeof signals / sizeof signals[0]));
-        for (size_t i = 0; i < nsignals; ++i)
+        for (std::size_t i = 0; i < nsignals; ++i)
         {
             assert(signals[i] > 0);
             s = sigaction(signals[i], &act, &m_oldact[i]);
@@ -81,7 +84,7 @@ public:
             S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
             S21, S22, S23, S24, S25, S26, S27, S28, S29, S30};
         BOOST_STATIC_ASSERT((nsignals <= sizeof signals / sizeof signals[0]));
-        for (size_t i = 0; i < nsignals; ++i)
+        for (std::size_t i = 0; i < nsignals; ++i)
         {
             assert(signals[i] > 0);
             sigaction(signals[i], &m_oldact[i], 0);
@@ -111,7 +114,7 @@ private:
         // embrace it with a try-catch block.
         // The return value is ignored, because
         // if write() fails there is, probably, nothing useful that can be done.
-        int s = write(m_pipe[1], siginfo, sizeof *siginfo); //TODO: care about return value
+        int s = write(m_pipe[1], siginfo, sizeof *siginfo);
         s = s;
     }
     static int m_pipe[2];
@@ -120,7 +123,7 @@ private:
     // 4.5 Integral promotions.
     // An rvalue of type bool can be converted to an rvalue of type int, with false becoming zero and true becoming one.
     // Plus has higher precedence than greater.
-    static size_t const nsignals =
+    static std::size_t const nsignals =
         (S1 > 0) + (S2 > 0) + (S3 > 0) + (S4 > 0) + (S5 > 0) +
         (S6 > 0) + (S7 > 0) + (S8 > 0) + (S9 > 0) + (S10 > 0) +
         (S11 > 0) + (S12 > 0) + (S13 > 0) + (S14 > 0) + (S15 > 0) +
