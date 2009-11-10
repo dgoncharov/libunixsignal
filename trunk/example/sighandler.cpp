@@ -20,10 +20,10 @@ using std::flush;
 namespace ba = boost::asio;
 namespace bap = boost::asio::posix;
 
-void on_signal(boost::system::error_code const& error, siginfo_t const* siginfo, int* invoked)
+void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, int* invoked)
 {
     if (!error)
-        cout << "signal #" << siginfo->si_signo << " received" << endl << "# " << flush;
+        cout << "signal #" << siginfo.si_signo << " received" << endl << "# " << flush;
     *invoked = 1;
 }
 
