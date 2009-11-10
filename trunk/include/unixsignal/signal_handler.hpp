@@ -7,7 +7,9 @@
 #define UNIXSIGNAL_SIGNAL_HANDLER_HPP
 
 #include <signal.h>
+#include <list>
 #include <boost/bind.hpp>
+#include <boost/function.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/asio/read.hpp>
@@ -24,6 +26,15 @@ template <
     int S26 = 0, int S27 = 0, int S28 = 0, int S29 = 0, int S30 = 0>
 class signal_handler
 {
+private:
+    typedef signal_handler<
+        S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
+        S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
+        S21, S22, S23, S24, S25, S26, S27, S28, S29, S30> this_type;
+
+    typedef boost::function<void (boost::system::error_code const&, siginfo_t const&)> cb_t;
+    typedef std::list<siginfo_t> siginfo_list_t;
+
 public:
     explicit signal_handler(boost::asio::io_service& ios)
         : m_sd(ios, m_sigfd.fd())
@@ -32,7 +43,24 @@ public:
     template <typename Handler>
     void async_wait(Handler h)
     {
-        boost::asio::async_read(m_sd, boost::asio::buffer(&m_buf, sizeof m_buf), boost::bind(h, _1, &m_buf));
+        cb_t f(h);
+        siginfo_list_t::iterator it = m_bufs.insert(m_bufs.end(), siginfo_t());
+        boost::asio::async_read(m_sd, boost::asio::buffer(&*it, sizeof *it), boost::bind(&this_type::on_sig, this, _1, f, it));
+    }
+
+private:
+    void on_sig(boost::system::error_code const& e, cb_t const& f, siginfo_list_t::iterator it)
+    {
+        try
+        {
+            f(e, *it);
+            m_bufs.erase(it);
+        }
+        catch (...)
+        {
+            m_bufs.erase(it);
+            throw;
+        }
     }
 
 private:
@@ -41,7 +69,7 @@ private:
         S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
         S21, S22, S23, S24, S25, S26, S27, S28, S29, S30> m_sigfd;
     boost::asio::posix::stream_descriptor m_sd;
-    siginfo_t m_buf;
+    siginfo_list_t m_bufs;
 };
 
 } // namespace unixsignal
