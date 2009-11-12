@@ -402,17 +402,19 @@ void test_stream_descriptor()
 
 bool init_unit_test()
 {
+    cout << "using ";
 #if defined(BOOST_ASIO_HAS_IOCP)
-    cout << "iocp" << endl;
+    cout << "iocp";
 #elif defined(BOOST_ASIO_HAS_EPOLL)
-    cout << "epoll" << endl;
+    cout << "epoll";
 #elif defined(BOOST_ASIO_HAS_KQUEUE)
-    cout << "kqueue" << endl;
+    cout << "kqueue";
 #elif defined(BOOST_ASIO_HAS_DEV_POLL)
-    cout << "devpoll" << endl;
+    cout << "devpoll";
 #else
-    cout << "select" << endl;
+    cout << "select";
 #endif
+    cout << " multiplexing mechanism" << endl;
 
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_signalfd));
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_multisignalfd));
