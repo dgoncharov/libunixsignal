@@ -27,7 +27,7 @@ AC_CHECK_HEADERS([\
     AC_MSG_ERROR([You need to have the libc headers installed]))
 
 AC_CHECK_HEADERS([\
-    cerrno cstring cstddef cassert iostream],,
+    cerrno cstring cstddef cstdlib cassert iostream iomanip string],,
     AC_MSG_ERROR([You need to have the C++ standard headers installed]))
 
 AC_HEADER_STDBOOL
@@ -57,6 +57,7 @@ AC_CHECK_HEADERS([ \
     boost/asio/posix/stream_descriptor.hpp \
     boost/asio/read.hpp \
     boost/asio/deadline_timer.hpp \
+		boost/asio/error.hpp \
     boost/date_time/posix_time/posix_time.hpp \
     boost/scope_exit.hpp \
     boost/test/unit_test.hpp],,

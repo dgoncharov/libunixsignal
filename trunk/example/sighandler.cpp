@@ -3,13 +3,19 @@
 // Distributed under the BSD License.
 // (See accompanying file COPYING).
 
+#include <unixsignal/signal_handler.hpp>
+#include <unistd.h>
+#include <cstddef>
+#include <cassert>
 #include <iostream>
 #include <iomanip>
 #include <string>
 #include <boost/bind.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
-#include <unixsignal/signal_handler.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/error.hpp>
 
 using std::cout;
 using std::cin;
@@ -41,25 +47,29 @@ void on_stdin(boost::system::error_code const& error, char const* buf, std::size
             cout << "stdin closed." << flush;
             *running = 0;
         }
-	else
+        else
             cout << "stdin error: " << error << endl;
-   }
+    }
 }
 
 int main(int, char const* [])
 {
     ba::io_service ios;
 
-    unixsignal::signal_handler<SIGINT> sigint(ios);
-    unixsignal::signal_handler<SIGTERM> sigterm(ios);
+    unixsignal::signal_handler<SIGINT, SIGTERM> sigint(ios);
+    unixsignal::signal_handler<SIGHUP, SIGUSR1, SIGUSR2> sighup(ios);
 
     bap::stream_descriptor std_in(ios, STDIN_FILENO);
 
-    cout << "Type to watch stdin activity. Send signals to watch the program react. Use ^D to exit" << endl << "# " << flush;
+    cout << "Type to watch stdin activity\n"
+         << "Send the following signals to watch the program react #"
+         << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP << ", #" << SIGUSR1 << ", #" << SIGUSR2
+         << "\nUse ^D to exit"
+         << endl << "# " << flush;
 
     int running = 1;
     int sigint_restart_wait = 1;
-    int sigterm_restart_wait = 1;
+    int sighup_restart_wait = 1;
     while (running)
     {
         ios.reset();
@@ -69,10 +79,10 @@ int main(int, char const* [])
             sigint_restart_wait = 0;
             sigint.async_wait(boost::bind(on_signal, _1, _2, &sigint_restart_wait));
         }
-        if (sigterm_restart_wait)
+        if (sighup_restart_wait)
         {
-            sigterm_restart_wait = 0;
-            sigterm.async_wait(boost::bind(on_signal, _1, _2, &sigterm_restart_wait));
+            sighup_restart_wait = 0;
+            sighup.async_wait(boost::bind(on_signal, _1, _2, &sighup_restart_wait));
         }
 
         char buf[1024];
