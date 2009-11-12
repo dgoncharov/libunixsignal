@@ -45,7 +45,7 @@ public:
     void async_wait(Handler h)
     {
         cb_t f(h);
-        boost::asio::async_read(m_sd, boost::asio::null_buffers(), boost::bind(&this_type::on_sig, this, _1, f));
+        m_sd.async_read_some(boost::asio::null_buffers(), boost::bind(&this_type::on_sig, this, _1, f));
     }
 
 private:
