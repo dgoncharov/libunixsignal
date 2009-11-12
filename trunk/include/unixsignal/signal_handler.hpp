@@ -58,8 +58,8 @@ private:
         }
         boost::asio::posix::descriptor_base::bytes_readable cmd;
         m_sd.io_control(cmd);
-        std::size_t const nbytes = cmd.get();
-        if (nbytes >= sizeof(siginfo_t))
+        std::size_t const navail = cmd.get();
+        if (navail >= sizeof(siginfo_t))
         {
             siginfo_t siginfo;
             std::size_t const n = boost::asio::read(m_sd, boost::asio::buffer(&siginfo, sizeof siginfo));
