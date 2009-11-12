@@ -10,7 +10,9 @@
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
-
+#include <boost/asio/deadline_timer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/scope_exit.hpp>
 #include <unixsignal/signalfd.hpp> //TODO: split to two files and #include this headers first to make sure they are self contained
 #include <unixsignal/signal_handler.hpp>
 
@@ -76,7 +78,7 @@ void test_multisignalfd()
 
     fd_set rfds;
     {
-        cout << "raising SIGINT" << endl;
+//        cout << "raising SIGINT" << endl;
         raise(SIGINT);
 
         FD_ZERO(&rfds);
@@ -91,7 +93,7 @@ void test_multisignalfd()
 		BOOST_CHECK(SIGINT == siginfo.si_signo);
     }
     {
-		cout << "raising SIGTERM" << endl;
+//		cout << "raising SIGTERM" << endl;
         raise(SIGTERM);
 
         FD_ZERO(&rfds);
@@ -114,7 +116,7 @@ void test_signal_handler()
     {
         static void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, siginfo_t* arrived)
         {
-            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
+//            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
             BOOST_CHECK(!error);
             *arrived = siginfo;
         }
@@ -137,7 +139,7 @@ void test_signal_handler()
         sigint.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo1));
         sigterm.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo2));
 
-        cout << "raising SIGINT" << endl;
+//        cout << "raising SIGINT" << endl;
         raise(SIGINT);
         ios.run_one();
 
@@ -148,7 +150,7 @@ void test_signal_handler()
         std::memset(&siginfo1, 0, sizeof siginfo1);
         sigint.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo1));
 
-        cout << "raising SIGTERM" << endl;
+//        cout << "raising SIGTERM" << endl;
         raise(SIGTERM);
         ios.run_one();
 
@@ -159,7 +161,7 @@ void test_signal_handler()
         std::memset(&siginfo2, 0, sizeof siginfo2);
         sigint.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo1));
 
-        cout << "raising SIGINT" << endl;
+//        cout << "raising SIGINT" << endl;
         raise(SIGINT);
         ios.run_one();
 
@@ -174,7 +176,7 @@ void test_multisignal_handler(int n)
     {
         static void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, siginfo_t* arrived)
         {
-            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
+//            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
             BOOST_CHECK(!error);
             *arrived = siginfo;
         }
@@ -196,7 +198,7 @@ void test_multisignal_handler(int n)
 
         sig.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo));
 
-        cout << "raising SIGINT" << endl;
+//        cout << "raising SIGINT" << endl;
         raise(SIGINT);
         ios.run_one();
         BOOST_CHECK(SIGINT == siginfo.si_signo);
@@ -204,7 +206,7 @@ void test_multisignal_handler(int n)
         ios.reset();
         sig.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo));
 
-        cout << "raising SIGTERM" << endl;
+//        cout << "raising SIGTERM" << endl;
         raise(SIGTERM);
         ios.run_one();
         BOOST_CHECK(SIGTERM == siginfo.si_signo);
@@ -215,9 +217,9 @@ void test_multisignal_handler(int n)
         sig.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo));
         sig.async_wait(boost::bind(&local::on_signal, _1, _2, &siginfo2));
 
-        cout << "raising SIGTERM" << endl;
+//        cout << "raising SIGTERM" << endl;
         raise(SIGTERM);
-        cout << "raising SIGINT" << endl;
+//        cout << "raising SIGINT" << endl;
         raise(SIGINT);
         ios.run();
         BOOST_CHECK(SIGTERM == siginfo.si_signo);
@@ -231,7 +233,7 @@ void test_multisignal_handler2(int n)
     {
         static void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, siginfo_t* arrived)
         {
-            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
+//            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
             BOOST_CHECK(!error);
             *arrived = siginfo;
         }
@@ -252,9 +254,9 @@ void test_multisignal_handler2(int n)
         std::memset(&siginfo2, 0, sizeof siginfo2);
     
         ios.reset();
-        cout << "raising SIGTERM" << endl;
+//        cout << "raising SIGTERM" << endl;
         raise(SIGTERM);
-        cout << "raising SIGINT" << endl;
+//        cout << "raising SIGINT" << endl;
         raise(SIGINT);
         std::memset(&siginfo, 0, sizeof siginfo);
         std::memset(&siginfo2, 0, sizeof siginfo2);
@@ -266,38 +268,94 @@ void test_multisignal_handler2(int n)
         BOOST_CHECK(0 == siginfo.si_signo);
         BOOST_CHECK(0 == siginfo2.si_signo);
     
-        cout << "running once" << endl;
+//        cout << "running once" << endl;
         ios.run_one();
         BOOST_CHECK(SIGTERM == siginfo.si_signo);
         BOOST_CHECK(0 == siginfo2.si_signo);
     
-        cout << "running twice" << endl;
+//        cout << "running twice" << endl;
         ios.run_one();
         BOOST_CHECK(SIGINT == siginfo2.si_signo);
     }
 }
-/*
-void test_stream_descriptor()
+
+void test_signal_handler_no_spurious_invocation()
 {
     struct local
     {
-        static void on_read(boost::system::error_code const& error)
+        static void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, int* arrived)
         {
+            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
             BOOST_CHECK(!error);
+            *arrived = 1;
+        }
+        
+        static void on_timeout(boost::system::error_code const& error, int* expired)
+        {
+           BOOST_CHECK(!error);
+           *expired = 1;
         }
     };
 
     cout << BOOST_CURRENT_FUNCTION << endl;
-#if defined (BOOST_ASIO_HAS_EPOLL)
-    std::cout << "epoll" << std::endl;
-#else
-    std::cout << "select" << std::endl;
-#endif
+
+    sigset_t sigset, oldsigset;
+    sigemptyset(&sigset);
+    sigaddset(&sigset, SIGINT);
+    int const s = pthread_sigmask(SIG_BLOCK, &sigset, &oldsigset);
+    BOOST_CHECK(0 == s);
+    BOOST_SCOPE_EXIT((&oldsigset))
+    {
+        int const s1 = pthread_sigmask(SIG_SETMASK, &oldsigset, 0);
+        BOOST_CHECK(0 == s1);
+    }
+    BOOST_SCOPE_EXIT_END
+
+    boost::asio::io_service ios;
+    unixsignal::signal_handler<SIGINT> sigint(ios);
+
+    ios.reset();
+
+    siginfo_t siginfo;
+    std::memset(&siginfo, 0, sizeof siginfo);
+    int arrived = 0;
+    sigint.async_wait(boost::bind(&local::on_signal, _1, _2, &arrived));
+
+    int expired = 0;
+    boost::asio::deadline_timer timer(ios);
+    timer.expires_from_now(boost::posix_time::seconds(5));
+    timer.async_wait(boost::bind(&local::on_timeout, _1, &expired));
+
+    ios.run_one();
+    BOOST_CHECK(expired);
+    BOOST_CHECK(!arrived);
+}
+
+void test_stream_descriptor()
+{
+    struct local
+    {
+        static void on_ready(boost::system::error_code const& error, boost::asio::posix::stream_descriptor* sd)
+        {
+            cout << "sd is ready" << endl;
+            BOOST_CHECK(!error);
+            boost::asio::posix::descriptor_base::bytes_readable cmd;
+            sd->io_control(cmd);
+            std::size_t const navail = cmd.get();
+            cout << navail << " available" << endl;
+            BOOST_CHECK(sizeof(char) == navail);
+            char c;
+            std::size_t const n = boost::asio::read(*sd, boost::asio::buffer(&c, sizeof c));
+            BOOST_CHECK(sizeof c == n);
+        }
+    };
+
+    cout << BOOST_CURRENT_FUNCTION << endl;
 
     int p[2];
     int const s = ::pipe(p);
     BOOST_CHECK(0 == s);
-    
+/*
     char c2 = 0;
     {
         char const c = 7;
@@ -313,27 +371,48 @@ void test_stream_descriptor()
     int const s1 = ioctl(p[0], FIONREAD, &nbytes);
     BOOST_CHECK(0 == s1);
     cout << "nbytes: " << nbytes << endl;
-
+*/
     boost::asio::io_service ios;
     ios.reset();
 
-    BOOST_CHECK(0 == c2);
+//    BOOST_CHECK(0 == c2);
     boost::asio::posix::stream_descriptor sd1(ios, p[0]);
-    boost::asio::async_read(sd1, boost::asio::buffer(&c2, sizeof c2), boost::bind(&local::on_read, _1));
 //    boost::asio::async_read(sd1, boost::asio::buffer(&c2, sizeof c2), boost::bind(&local::on_read, _1));
+//    boost::asio::async_read(sd1, boost::asio::null_buffers(), boost::bind(&local::on_ready, _1, &sd1));
+    sd1.async_read_some(boost::asio::null_buffers(), boost::bind(&local::on_ready, _1, &sd1));
 
-    cout << "c2: " << int(c2) << endl;
-    BOOST_CHECK(0 == c2);
+//     cout << "c2: " << int(c2) << endl;
+//     BOOST_CHECK(0 == c2);
 
-//     ios.run_one();
+//     {
+//         char const c = 9;
+//         int const s3 = ::write(p[1], &c, sizeof c);
+//         BOOST_CHECK(sizeof c == s3);
+//     }
+
+    cout << "running one" << endl;
+    ios.run_one();
+    cout << "run_one() returned" << endl;
 //     BOOST_CHECK(7 == c2);
 //
 //     ios.run_one();
 //     BOOST_CHECK(9 == c2);
 }
-*/
+
 bool init_unit_test()
 {
+#if defined(BOOST_ASIO_HAS_IOCP)
+    std::cout << "iocp" << std::endl;
+#elif defined(BOOST_ASIO_HAS_EPOLL)
+    std::cout << "epoll" << std::endl;
+#elif defined(BOOST_ASIO_HAS_KQUEUE)
+    std::cout << "kqueue" << std::endl;
+#elif defined(BOOST_ASIO_HAS_DEV_POLL)
+    std::cout << "devpoll" << std::endl;
+#else
+    std::cout << "select" << std::endl;
+#endif
+
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_signalfd));
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_multisignalfd));
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_signal_handler));
@@ -341,6 +420,8 @@ bool init_unit_test()
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(boost::bind(test_multisignal_handler, 1000)));
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(boost::bind(test_multisignal_handler2, 1)));
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(boost::bind(test_multisignal_handler2, 1000)));
+    boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_signal_handler_no_spurious_invocation));
+//    boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_stream_descriptor));
     return true;
 }
 
