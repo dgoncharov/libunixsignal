@@ -89,7 +89,7 @@ int main() {boost::system::error_code c; return 0;}
     [AC_MSG_RESULT([not found])
      AC_MSG_ERROR([Can't find the boost_system library. $BOOST_NOT_FOUND_ERRMSG])]
 )
-LIBS="$save_LIBS -lboost_system"
+LIBS="-lboost_system $save_LIBS"
 
 AH_TOP([
 #ifndef CONFIG_H
