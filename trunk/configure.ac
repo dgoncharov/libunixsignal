@@ -56,6 +56,9 @@ AC_CHECK_HEADERS([ \
     boost/asio/posix/basic_stream_descriptor.hpp \
     boost/asio/posix/stream_descriptor.hpp \
     boost/asio/read.hpp \
+    boost/asio/deadline_timer.hpp \
+    boost/date_time/posix_time/posix_time.hpp \
+    boost/scope_exit.hpp \
     boost/test/unit_test.hpp],,
     AC_MSG_ERROR([You need to have the boost headers installed]))
 
