@@ -21,7 +21,8 @@
 
 namespace
 {
-using namespace std;
+using std::cout;
+using std::endl;
 
 void test_signalfd()
 {
@@ -116,7 +117,7 @@ void test_signal_handler()
     {
         static void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, siginfo_t* arrived)
         {
-//            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
+//            cout << "arrived signal #" << siginfo.si_signo << endl;
             BOOST_CHECK(!error);
             *arrived = siginfo;
         }
@@ -176,7 +177,7 @@ void test_multisignal_handler(int n)
     {
         static void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, siginfo_t* arrived)
         {
-//            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
+//            cout << "arrived signal #" << siginfo.si_signo << endl;
             BOOST_CHECK(!error);
             *arrived = siginfo;
         }
@@ -233,7 +234,7 @@ void test_multisignal_handler2(int n)
     {
         static void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, siginfo_t* arrived)
         {
-//            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
+//            cout << "arrived signal #" << siginfo.si_signo << endl;
             BOOST_CHECK(!error);
             *arrived = siginfo;
         }
@@ -285,7 +286,7 @@ void test_signal_handler_no_spurious_invocation()
     {
         static void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, int* arrived)
         {
-            std::cout << "arrived signal #" << siginfo.si_signo << std::endl;
+            cout << "arrived signal #" << siginfo.si_signo << endl;
             BOOST_CHECK(!error);
             *arrived = 1;
         }
@@ -402,15 +403,15 @@ void test_stream_descriptor()
 bool init_unit_test()
 {
 #if defined(BOOST_ASIO_HAS_IOCP)
-    std::cout << "iocp" << std::endl;
+    cout << "iocp" << endl;
 #elif defined(BOOST_ASIO_HAS_EPOLL)
-    std::cout << "epoll" << std::endl;
+    cout << "epoll" << endl;
 #elif defined(BOOST_ASIO_HAS_KQUEUE)
-    std::cout << "kqueue" << std::endl;
+    cout << "kqueue" << endl;
 #elif defined(BOOST_ASIO_HAS_DEV_POLL)
-    std::cout << "devpoll" << std::endl;
+    cout << "devpoll" << endl;
 #else
-    std::cout << "select" << std::endl;
+    cout << "select" << endl;
 #endif
 
     boost::unit_test::framework::master_test_suite().add(BOOST_TEST_CASE(test_signalfd));
