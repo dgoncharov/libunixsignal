@@ -23,7 +23,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # Checks for header files.
 
 AC_CHECK_HEADERS([\
-    pthread.h sys/time.h sys/types.h unistd.h sys/select.h signal.h],,
+    pthread.h sys/time.h sys/types.h unistd.h sys/select.h signal.h fcntl.h limits.h],,
     AC_MSG_ERROR([You need to have the libc headers installed]))
 
 AC_CHECK_HEADERS([\

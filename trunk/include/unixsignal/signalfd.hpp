@@ -6,8 +6,10 @@
 #ifndef UNIXSIGNAL_SIGNALFD_HPP
 #define UNIXSIGNAL_SIGNALFD_HPP
 
-#include <signal.h>
 #include <unistd.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <limits.h>
 
 #include <cerrno>
 #include <cstring>
@@ -34,16 +36,36 @@ private:
         S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
         S21, S22, S23, S24, S25, S26, S27, S28, S29, S30> this_type;
 
+    struct fdcloser
+    {
+        ~fdcloser()
+        {
+            close(fd);
+        }
+        int fd;
+    };
+
 public:
     signalfd()
     {
-        int s = pipe(m_pipe);
+        int p[2];
+        int const s = pipe(p);
         if (s < 0)
-        {
-            int const errcode = errno;
             throw boost::system::system_error(
-                boost::system::error_code(errcode, boost::system::get_system_category()));
-        }
+                boost::system::error_code(errno, boost::system::get_system_category()));
+        m_r.fd = p[0];
+        m_w.fd = p[1];
+        m_wfd = m_w.fd;
+
+        int const f = fcntl(m_w.fd, F_GETFL, 0);
+        if (f < 0)
+            throw boost::system::system_error(
+                boost::system::error_code(errno, boost::system::get_system_category()));
+        int const s1 = fcntl(m_w.fd, F_SETFL, f | O_NONBLOCK);
+        if (s1 < 0)
+            throw boost::system::system_error(
+                boost::system::error_code(errno, boost::system::get_system_category()));
+
         struct sigaction act;
         std::memset(&act, 0, sizeof act);
         std::memset(&m_oldact, 0, sizeof m_oldact);
@@ -58,16 +80,14 @@ public:
         for (std::size_t i = 0; i < nsignals; ++i)
         {
             assert(signals[i] > 0);
-            s = sigaction(signals[i], &act, &m_oldact[i]);
-            if (s < 0)
+            int const s2 = sigaction(signals[i], &act, &m_oldact[i]);
+            if (s2 < 0)
             {
                 int const errcode = errno;
                 // Ignore return values.
                 // The "goes down to" operator.
                 while (i --> 0)
                     sigaction(signals[i], &m_oldact[i], 0);
-                close(m_pipe[0]);
-                close(m_pipe[1]);
                 throw boost::system::system_error(
                     boost::system::error_code(errcode, boost::system::get_system_category()));
             }
@@ -89,15 +109,13 @@ public:
             assert(signals[i] > 0);
             sigaction(signals[i], &m_oldact[i], 0);
         }
-        close(m_pipe[0]);
-        close(m_pipe[1]);
     }
 
     /// \brief The user should not close the file descriptor
     /// which this function returns.
     int fd() const
     {
-        return m_pipe[0];
+        return m_r.fd;
     }
 
 private:
@@ -114,10 +132,13 @@ private:
         // embrace it with a try-catch block.
         // The return value is ignored, because
         // if write() fails there is, probably, nothing useful that can be done.
-        int s = write(m_pipe[1], siginfo, sizeof *siginfo);
+        BOOST_STATIC_ASSERT((PIPE_BUF >= sizeof(siginfo_t)));
+        int s = write(m_wfd, siginfo, sizeof *siginfo);
         s = s;
     }
-    static int m_pipe[2];
+    fdcloser m_r;
+    fdcloser m_w;
+    static int m_wfd;
 
 private:
     // 4.5 Integral promotions.
@@ -143,7 +164,7 @@ template <
 int signalfd<
         S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
         S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
-        S21, S22, S23, S24, S25, S26, S27, S28, S29, S30>::m_pipe[2];
+        S21, S22, S23, S24, S25, S26, S27, S28, S29, S30>::m_wfd;
 } // namespace unixsignal
 
 #endif // UNIXSIGNAL_SIGNALFD_HPP
