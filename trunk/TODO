@@ -1,0 +1,3 @@
+1. A test which verifies that signal dispositions get restored.
+2. A test which verifies that write() never blocks, even when the pipe is full.
+3. A more memory efficient class which doesn't restore signal dispositions.
