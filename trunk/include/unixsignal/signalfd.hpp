@@ -36,15 +36,6 @@ private:
         S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
         S21, S22, S23, S24, S25, S26, S27, S28, S29, S30> this_type;
 
-    struct fdcloser
-    {
-        ~fdcloser()
-        {
-            close(fd);
-        }
-        int fd;
-    };
-
 public:
     signalfd()
     {
@@ -126,6 +117,15 @@ private:
     this_type& operator=(this_type const&);
 
 private:
+    struct fdcloser
+    {
+        ~fdcloser()
+        {
+            close(fd);
+        }
+        int fd;
+    };
+
     static void on_signal(int, siginfo_t* siginfo, void*)
     {
         // If this callback invokes anything that can throw an exception
