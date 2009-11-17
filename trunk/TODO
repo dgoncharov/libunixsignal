@@ -1,3 +1,4 @@
 1. A test which verifies that signal dispositions get restored.
 2. A test which verifies that write() never blocks, even when the pipe is full.
-3. A more memory efficient class which doesn't restore signal dispositions.
+3. A memory efficient class which doesn't restore signal dispositions.
+4. A test which verifies that 30 signal numbers can be used as template parameters of signalfd.
