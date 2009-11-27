@@ -63,7 +63,9 @@ AC_CHECK_HEADERS([ \
     boost/test/unit_test.hpp],,
     AC_MSG_ERROR([You need to have the boost headers installed]))
 
-BOOST_NOT_FOUND_ERRMSG="You need to install the boost libraries. The boost libraries can be obtained from boost.org"
+BOOST_NOT_FOUND_ERRMSG="You need to install the boost libraries.\
+ The boost libraries can be obtained from boost.org.\
+ If you have the boost libraries installed and their file names have suffixes have a look at the --with-boost-libs-suffix option"
 
 save_LIBS="$LIBS"
 LIBS="$LIBS -lpthread"
@@ -72,25 +74,50 @@ AC_LINK_IFELSE([
 #include <pthread.h>
 int main() {pthread_self(); return 0;}
 ],
-    [AC_MSG_RESULT([-lpthread])],
+    [PTHREAD_LIB="-lpthread"
+    AC_MSG_RESULT([$PTHREAD_LIB])],
     [AC_MSG_RESULT([not found])
-     AC_MSG_ERROR([You need to have the pthread library installed])]
+    AC_MSG_ERROR([You need to have the pthread library installed])]
 )
-LIBS="$save_LIBS -lpthread"
+AC_SUBST(PTHREAD_LIB)
+LIBS="$save_LIBS"
 
-# Checks for library functions.
+AC_ARG_WITH(boost-libs-suffix,
+AC_HELP_STRING(
+    [--with-boost-libs-suffix=suffix],
+    [boost libraries suffix.
+    If your boost libraries look like libboost_system-mt.so then the suffix is -mt.
+    You need to specify a suffix if you want to force linking against a library with that suffix]))
+
 save_LIBS="$LIBS"
-LIBS="$LIBS -lboost_system"
-AC_MSG_CHECKING([for boost.system library])
+LIBS="$LIBS -lboost_system$with_boost_libs_suffix"
+AC_MSG_CHECKING([for Boost.System library])
 AC_LINK_IFELSE([
-#include <boost/system/error_code.hpp>
-int main() {boost::system::error_code c; return 0;}
+    #include <boost/system/system_error.hpp>
+    int main() {boost::system::system_error(boost::system::error_code(0, boost::system::get_system_category())); return 0;}
 ],
-    [AC_MSG_RESULT([-lboost_system])],
+    [BOOST_SYSTEM_LIB="-lboost_system$with_boost_libs_suffix"
+    AC_MSG_RESULT([$BOOST_SYSTEM_LIB])],
     [AC_MSG_RESULT([not found])
-     AC_MSG_ERROR([Can't find the boost_system library. $BOOST_NOT_FOUND_ERRMSG])]
-)
-LIBS="-lboost_system $save_LIBS"
+    AC_MSG_ERROR([Can't find the Boost.System library. $BOOST_NOT_FOUND_ERRMSG])])
+AC_SUBST(BOOST_SYSTEM_LIB)
+LIBS="$save_LIBS"
+
+save_LIBS="$LIBS"
+LIBS="$LIBS -lboost_unit_test_framework$with_boost_libs_suffix"
+AC_MSG_CHECKING([for Boost.Test library])
+AC_LINK_IFELSE([
+    #define BOOST_TEST_DYN_LINK
+    #include <boost/test/unit_test.hpp>
+    bool init_unit_test() { return true;}
+    int main(int argc, char** argv) { boost::unit_test::unit_test_main(&init_unit_test, argc, argv); return 0;}
+],
+    [BOOST_UNIT_TEST_FRAMEWORK_LIB="-lboost_unit_test_framework$with_boost_libs_suffix"
+    AC_MSG_RESULT([$BOOST_UNIT_TEST_FRAMEWORK_LIB])],
+    [AC_MSG_RESULT([not found])
+    AC_MSG_ERROR([Can't find the Boost.Test library. $BOOST_NOT_FOUND_ERRMSG])])
+AC_SUBST(BOOST_UNIT_TEST_FRAMEWORK_LIB)
+LIBS="$save_LIBS"
 
 AH_TOP([
 #ifndef CONFIG_H
