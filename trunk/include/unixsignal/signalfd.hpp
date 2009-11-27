@@ -128,6 +128,7 @@ private:
 
     static void on_signal(int, siginfo_t* siginfo, void*)
     {
+        int const save_errno = errno;
         // If this callback invokes anything that can throw an exception
         // embrace it with a try-catch block.
         // The return value is ignored, because
@@ -135,6 +136,7 @@ private:
         BOOST_STATIC_ASSERT((PIPE_BUF >= sizeof(siginfo_t)));
         int s = write(m_wfd, siginfo, sizeof *siginfo);
         s = s;
+        errno = save_errno;
     }
     fdcloser m_r;
     fdcloser m_w;
