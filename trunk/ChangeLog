@@ -1,0 +1,3 @@
+0.0.1
+    Fixed a bug. Errno is saved and then restored in the signal handler.
+    added configure option with-boost-libs-suffix
