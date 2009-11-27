@@ -3,6 +3,7 @@ SUBDIRS = include example test doc
 ACLOCAL_AMFLAGS = -I m4
 
 #EXTRA_DIST = libunixsignal.pc.in
+EXTRA_DIST = bootstrap.sh
 
 #pkgconfigdir = $(libdir)/pkgconfig
 #pkgconfig_DATA = libunixsignal.pc
