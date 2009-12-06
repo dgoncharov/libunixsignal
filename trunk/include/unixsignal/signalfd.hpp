@@ -20,7 +20,6 @@
 
 namespace unixsignal {
 
-
 template <
     int S1, int S2 = 0, int S3 = 0, int S4 = 0, int S5 = 0,
     int S6 = 0, int S7 = 0, int S8 = 0, int S9 = 0, int S10 = 0,
@@ -30,12 +29,6 @@ template <
     int S26 = 0, int S27 = 0, int S28 = 0, int S29 = 0, int S30 = 0>
 class signalfd
 {
-private:
-    typedef signalfd<
-        S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
-        S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
-        S21, S22, S23, S24, S25, S26, S27, S28, S29, S30> this_type;
-
 public:
     signalfd()
     {
@@ -61,7 +54,7 @@ public:
         std::memset(&act, 0, sizeof act);
         std::memset(&m_oldact, 0, sizeof m_oldact);
         act.sa_flags = SA_SIGINFO;
-        act.sa_sigaction = this_type::on_signal;
+        act.sa_sigaction = on_signal;
 
         int const signals[] = {
             S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
@@ -113,6 +106,11 @@ private:
     // Copy constructor and copy assignment are disabled
     // because the destructor closes the file descriptors.
     // The user can copy around the file descriptor which signalfd::fd() returns.
+    typedef signalfd<
+        S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
+        S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
+        S21, S22, S23, S24, S25, S26, S27, S28, S29, S30> this_type;
+
     signalfd(this_type const&);
     this_type& operator=(this_type const&);
 
