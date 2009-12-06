@@ -248,7 +248,13 @@ Linux features nonstandard syscall signalfd() which creates a file descriptor fo
 @example
 namespace unixsignal @{
 
-template <int Signo>
+template <
+    int S1, int S2 = 0, int S3 = 0, int S4 = 0, int S5 = 0,
+    int S6 = 0, int S7 = 0, int S8 = 0, int S9 = 0, int S10 = 0,
+    int S11 = 0, int S12 = 0, int S13 = 0, int S14 = 0, int S15 = 0,
+    int S16 = 0, int S17 = 0, int S18 = 0, int S19 = 0, int S20 = 0,
+    int S21 = 0, int S22 = 0, int S23 = 0, int S24 = 0, int S25 = 0,
+    int S26 = 0, int S27 = 0, int S28 = 0, int S29 = 0, int S30 = 0>
 class signal_handler
 @{
 public:
@@ -264,8 +270,12 @@ public:
 
 @example
 Class template signal_handler extends boost::asio with the ability to invoke a handler whenever a unix signal arrives.
-Users can create an object of signal_handler and use async_wait() along with boost::asio::io_service event processing to asynchronously wait for a signal.
-After the associated signal arrives the handler supplied to async_wait() will be invoked.
+
+An instance of signal_handler can be associated with one or more signals specified by the template parameters S1, S2,... S30.
+The user has to specify at least one signal. Up to 30 signals can be associated with one signal_handler. 
+async_wait() along with boost::asio::io_service event processing can be used to asynchronously wait for the associated signals.
+After one of the associated signals arrives the handler supplied to async_wait() will be invoked.
+An instance of siginfo_t which describes the arrived signal will be passed to the handler.
 
 signal_handler is neither copyable nor assignable.
 @end example
@@ -274,29 +284,29 @@ signal_handler is neither copyable nor assignable.
 explicit signal_handler(boost::asio::io_service& ios)
 
 @example
-Effects: Creates instances of signalfd and boost::asio::posix::stream_descriptor. All effects of the constructor of signalfd.
+Effects: Creates instances of signalfd and boost::asio::posix::stream_descriptor. All the effects of signalfd constructor.
 Postconditions: this->async_wait() initiates an asynchronous wait for the signal.
-Throws: boost::system_error if the constructor of signalfd fails.
+Throws: Anythingi that signalfd constructor can throw.
 @end example
 
 ~signal_handler()
 
 @example
 Effects: signal_handler doesn't have an explicit desctructor.
-         However, when an object of signal_handler is destroyed an object of signalfd is also destroyed and so, destruction of signal_handler has all effects of destruction of signalfd.
-Postconditions: All postconditions of signalfd.
-Throws: Does not throw.
+         However, when an object of signal_handler is destroyed an object of signalfd is also destroyed and so, destruction of signal_handler has all the effects of destruction of signalfd.
+Postconditions: All the postconditions of signalfd.
+Throws: Will not throw.
 @end example
 
 template <typename Handler>
 void async_wait(Handler h);
 
 @example
-Effects: Initiates an asynchronous wait against the signal and immediately returns.
-         For each call to async_wait(), the supplied handler will be called exactly once after the associated signal arrived.
-         Parameter handler has to be of the following signature void handler(const boost::system::error_code& error);
+Effects: Initiates an asynchronous wait against the associated signals and immediately returns.
+         For each call to async_wait(), the supplied handler will be called exactly once after one of the associated signals arrives.
+         Parameter handler has to be of the following signature void handler(const boost::system::error_code& error, siginfo_t const&);
          The handler has to be copyable. Invocation of the handler will be performed in a manner equivalent to using boost::asio::io_service::post().
-Postconditions: A subsequent arrival of the associated signal will cause one invocation of the provided handler.
+Postconditions: A subsequent arrival of one of the associated signals will cause one invocation of the provided handler.
 Throws: Anything that the underlying boost::asio::async_read() call can throw. Also, anything that the handler copy constructor can throw.
 @end example
 
@@ -304,13 +314,19 @@ Throws: Anything that the underlying boost::asio::async_read() call can throw. A
 @b{Example}
 
 @example
+#include <unixsignal/signal_handler.hpp>
+#include <unistd.h>
+#include <cstddef>
+#include <cassert>
 #include <iostream>
 #include <iomanip>
 #include <string>
 #include <boost/bind.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
-#include <unixsignal/signal_handler.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/error.hpp>
 
 using std::cout;
 using std::cin;
@@ -321,10 +337,10 @@ using std::flush;
 namespace ba = boost::asio;
 namespace bap = boost::asio::posix;
 
-void on_signal(boost::system::error_code const& error, int signo, int* invoked)
+void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, int* invoked)
 @{
     if (!error)
-        cout << "signal #" << signo << " received" << endl << "# " << flush;
+        cout << "signal #" << siginfo.si_signo << " received" << endl << "# " << flush;
     *invoked = 1;
 @}
 
@@ -342,25 +358,29 @@ void on_stdin(boost::system::error_code const& error, char const* buf, std::size
             cout << "stdin closed." << flush;
             *running = 0;
         @}
-	else
+        else
             cout << "stdin error: " << error << endl;
-   @}
+    @}
 @}
 
 int main(int, char const* [])
 @{
     ba::io_service ios;
 
-    unixsignal::signal_handler<SIGINT> sigint(ios);
-    unixsignal::signal_handler<SIGTERM> sigterm(ios);
+    unixsignal::signal_handler<SIGINT, SIGTERM> sigint(ios);
+    unixsignal::signal_handler<SIGHUP, SIGUSR1, SIGUSR2> sighup(ios);
 
     bap::stream_descriptor std_in(ios, STDIN_FILENO);
 
-    cout << "Type to watch stdin activity. Send signals to watch the program react. Use ^D to exit" << endl << "# " << flush;
+    cout << "Type to watch stdin activity\n"
+         << "Send the following signals to watch the program react #"
+         << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP << ", #" << SIGUSR1 << ", #" << SIGUSR2
+         << "\nUse ^D to exit"
+         << endl << "# " << flush;
 
     int running = 1;
     int sigint_restart_wait = 1;
-    int sigterm_restart_wait = 1;
+    int sighup_restart_wait = 1;
     while (running)
     @{
         ios.reset();
@@ -368,18 +388,18 @@ int main(int, char const* [])
         if (sigint_restart_wait)
         @{
             sigint_restart_wait = 0;
-            sigint.async_wait(boost::bind(on_signal, _1, SIGINT, &sigint_restart_wait));
+            sigint.async_wait(boost::bind(on_signal, _1, _2, &sigint_restart_wait));
         @}
-        if (sigterm_restart_wait)
+        if (sighup_restart_wait)
         @{
-            sigterm_restart_wait = 0;
-            sigterm.async_wait(boost::bind(on_signal, _1, SIGTERM, &sigterm_restart_wait));
+            sighup_restart_wait = 0;
+            sighup.async_wait(boost::bind(on_signal, _1, _2, &sighup_restart_wait));
         @}
 
         char buf[1024];
         std_in.async_read_some(ba::buffer(buf, sizeof buf), boost::bind(on_stdin, _1, buf, _2, &running));
 
-        ios.poll();
+        ios.run_one();
     @}
     cout << " Bye" << endl;
 @}
