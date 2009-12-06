@@ -1,22 +1,16 @@
 \input texinfo
 @setfilename unixsignal.info
 @include version.texi
-@settitle unixsignal @value{VERSION}
-@syncodeindex pg cp
+@settitle unixsignal @value{VERSION} manual
 
 @copying
 This manual is for libunixsignal (version @value{VERSION}, @value{UPDATED}).
 
 Copyright @copyright{} 2009 Dmitry Goncharov.
 Distributed under the BSD license.
-
-@ignore
-@quotation
-@end quotation
-@end ignore
 @end copying
 
-@dircategory ????
+@dircategory libraries
 @direntry
 * unixsignal: unixsignal.
 @end direntry
@@ -101,7 +95,6 @@ private:
 @b{Description}
 
 
-@example
 Class template signalfd creates a file descriptor and associates it with one or more signals specified by the template parameters S1, S2,... S30.
 The user has to specify at least one signal. Up to 30 signals can be associated with one file descriptor.
 
@@ -125,31 +118,24 @@ signalfd is neither copyable nor assignable.
 
 signalfd uses the following syscalls pipe(), sigaction(), close(), write() and is portable as long as these syscalls are portable.
 
-@end example
 
 signalfd()
 
-@example
-Effects: Creates an instance of signalfd. Sets the disposition of the specified signals to a pointer to a function.
-         Creates a file descritor and assiciated it with the specified signal.
-Postconditions: this->fd() return the file descriptor associated with the signal.
-Throws: boost::system_error if one of the syscalls fails. If an exception is thrown the signals disposition remains intact.
-@end example
+@*Effects: Creates an instance of signalfd. Sets the disposition of the specified signals to a pointer to a function.
+Creates a file descritor and assiciated it with the specified signal.
+@*Postconditions: this->fd() return the file descriptor associated with the signal.
+@*Throws: boost::system_error if one of the syscalls fails. If an exception is thrown the signals disposition remains intact.
 
 ~signalfd()
 
-@example
-Effects: Restores the original signals disposition. Closes the file descriptor.
-Throws: Will not throw.
-Postconditions: The original signals disposition is restored.
-@end example
+@*Effects: Restores the original signals disposition. Closes the file descriptor.
+@*Throws: Will not throw.
+@*Postconditions: The original signals disposition is restored.
 
 int fd() const
 
-@example
-Returns: The file descriptor associated with the signals.
-Throws: Will not throw.
-@end example
+@*Returns: The file descriptor associated with the signals.
+@*Throws: Will not throw.
 
 
 @b{Example}
@@ -182,7 +168,9 @@ void readsig(int fd)
     if (s < 0)
         cerr << "Cannot read: read(): " << std::strerror(errno) << endl;
     else if (static_cast<std::size_t>(s) < sizeof siginfo)
-        cerr << "\nCannot read the whole siginfo_t struct. read " << s << " bytes" << endl;
+        cerr
+	    << "\nCannot read the whole siginfo_t struct. read " << s << " bytes"
+	    << endl;
     else
         cout << " #" << siginfo.si_signo << endl;
 @}
@@ -236,9 +224,7 @@ int main(int, char const* [])
 @b{Note}
 
 
-@example
 Linux features nonstandard syscall signalfd() which creates a file descriptor for accepting signals. This syscall inspired the name of class template signalfd.
-@end example
 
 @node Header <unixsignal/signal_handler.hpp>
 @chapter Header <unixsignal/signal_handler.hpp>
@@ -268,7 +254,6 @@ public:
 
 @b{Description}
 
-@example
 Class template signal_handler extends boost::asio with the ability to invoke a handler whenever a unix signal arrives.
 
 An instance of signal_handler can be associated with one or more signals specified by the template parameters S1, S2,... S30.
@@ -278,37 +263,31 @@ After one of the associated signals arrives the handler supplied to async_wait()
 An instance of siginfo_t which describes the arrived signal will be passed to the handler.
 
 signal_handler is neither copyable nor assignable.
-@end example
 
 
 explicit signal_handler(boost::asio::io_service& ios)
 
-@example
-Effects: Creates instances of signalfd and boost::asio::posix::stream_descriptor. All the effects of signalfd constructor.
-Postconditions: this->async_wait() initiates an asynchronous wait for the signal.
-Throws: Anythingi that signalfd constructor can throw.
-@end example
+@*Effects: Creates instances of signalfd and boost::asio::posix::stream_descriptor. All the effects of signalfd constructor.
+@*Postconditions: this->async_wait() initiates an asynchronous wait for the signal.
+@*Throws: Anything that signalfd constructor can throw.
 
 ~signal_handler()
 
-@example
-Effects: signal_handler doesn't have an explicit desctructor.
-         However, when an object of signal_handler is destroyed an object of signalfd is also destroyed and so, destruction of signal_handler has all the effects of destruction of signalfd.
-Postconditions: All the postconditions of signalfd.
-Throws: Will not throw.
-@end example
+@*Effects: signal_handler doesn't have an explicit desctructor.
+However, when an object of signal_handler is destroyed an object of signalfd is also destroyed and so, destruction of signal_handler has all the effects of destruction of signalfd.
+@*Postconditions: All the postconditions of signalfd.
+@*Throws: Will not throw.
 
 template <typename Handler>
 void async_wait(Handler h);
 
-@example
-Effects: Initiates an asynchronous wait against the associated signals and immediately returns.
-         For each call to async_wait(), the supplied handler will be called exactly once after one of the associated signals arrives.
-         Parameter handler has to be of the following signature void handler(const boost::system::error_code& error, siginfo_t const&);
-         The handler has to be copyable. Invocation of the handler will be performed in a manner equivalent to using boost::asio::io_service::post().
-Postconditions: A subsequent arrival of one of the associated signals will cause one invocation of the provided handler.
-Throws: Anything that the underlying boost::asio::async_read() call can throw. Also, anything that the handler copy constructor can throw.
-@end example
+@*Effects: Initiates an asynchronous wait against the associated signals and immediately returns.
+For each call to async_wait(), the supplied handler will be called exactly once after one of the associated signals arrives.
+Parameter handler has to be of the following signature void handler(const boost::system::error_code& error, siginfo_t const&);
+The handler has to be copyable.
+Invocation of the handler will be performed in a manner equivalent to using boost::asio::io_service::post().
+@*Postconditions: A subsequent arrival of one of the associated signals will cause one invocation of the provided handler.
+@*Throws: Anything that the underlying boost::asio::async_read() call can throw. Also, anything that the handler copy constructor can throw.
 
 
 @b{Example}
@@ -336,15 +315,16 @@ using std::flush;
 
 namespace ba = boost::asio;
 namespace bap = boost::asio::posix;
+namespace bs = boost::system;
 
-void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, int* invoked)
+void on_signal(bs::error_code const& error, siginfo_t const& siginfo, int* invoked)
 @{
     if (!error)
         cout << "signal #" << siginfo.si_signo << " received" << endl << "# " << flush;
     *invoked = 1;
 @}
 
-void on_stdin(boost::system::error_code const& error, char const* buf, std::size_t buflen, int* running)
+void on_stdin(bs::error_code const& error, char const* buf, std::size_t buflen, int* running)
 @{
     if (!error)
     @{
@@ -374,7 +354,8 @@ int main(int, char const* [])
 
     cout << "Type to watch stdin activity\n"
          << "Send the following signals to watch the program react #"
-         << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP << ", #" << SIGUSR1 << ", #" << SIGUSR2
+         << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP
+	 << ", #" << SIGUSR1 << ", #" << SIGUSR2
          << "\nUse ^D to exit"
          << endl << "# " << flush;
 
@@ -397,7 +378,8 @@ int main(int, char const* [])
         @}
 
         char buf[1024];
-        std_in.async_read_some(ba::buffer(buf, sizeof buf), boost::bind(on_stdin, _1, buf, _2, &running));
+        std_in.async_read_some(
+	    ba::buffer(buf, sizeof buf), boost::bind(on_stdin, _1, buf, _2, &running));
 
         ios.run_one();
     @}
