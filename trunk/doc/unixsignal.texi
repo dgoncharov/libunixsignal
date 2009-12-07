@@ -102,7 +102,7 @@ Users must not close this file descriptor. This file descriptor cannot be passed
 
 Each instance of signalfd allocates a buffer. Therefore an application can end up with lots of buffers if it creates lots of signalfd. If an application creates one singalfd and associates it with all interesting signals only one buffer is allocated.
 
-signalfd keeps a struct siginfo_t in the internal buffer until it is read. Therefore, there can be more than one instance of siginfo_t waiting for being read. Since the size of the buffer is limited if signals arrive more often than structs siginfo_t are read from the file descriptor the new signals get discarded as soon as the buffer is full.
+signalfd keeps every struct siginfo_t in the internal buffer until it is read. Therefore, there can be more than one instance of siginfo_t waiting for being read. Since the size of the buffer is limited if signals arrive more often than structs siginfo_t are read from the file descriptor the new signals get discarded as soon as the buffer is full.
 Structs siginfo_t are read from the buffer in the FIFO order.
 The size of the buffer depends on the kernel and is usually a few KB.
 
@@ -385,7 +385,7 @@ int main(int, char const* [])
     cout << "Type to watch stdin activity\n"
          << "Send the following signals to watch the program react #"
          << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP
-	 << ", #" << SIGUSR1 << ", #" << SIGUSR2
+	       << ", #" << SIGUSR1 << ", #" << SIGUSR2
          << "\nUse ^D to exit"
          << endl << "# " << flush;
 
