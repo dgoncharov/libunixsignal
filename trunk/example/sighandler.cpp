@@ -25,30 +25,36 @@ using std::flush;
 
 namespace ba = boost::asio;
 namespace bap = boost::asio::posix;
+namespace bs = boost::system;
 
-void on_signal(boost::system::error_code const& error, siginfo_t const& siginfo, int* invoked)
+void on_signal(bs::error_code const& err, siginfo_t const& siginfo, int* invoked)
 {
-    if (!error)
-        cout << "signal #" << siginfo.si_signo << " received" << endl << "# " << flush;
+    if (!err)
+        cout
+            << "signal #" << siginfo.si_signo << " received"
+            << endl << "# " << flush;
     *invoked = 1;
 }
 
-void on_stdin(boost::system::error_code const& error, char const* buf, std::size_t buflen, int* running)
+void on_stdin(
+    bs::error_code const& err, char const* buf, std::size_t buflen, int* running)
 {
-    if (!error)
+    if (!err)
     {
         assert(buflen >= 1 && "Incorrect usage of boost::asio");
-        cout << "activity on stdin: " << std::string(buf, buflen - 1) << endl << "# " << flush;
+        cout 
+            << "activity on stdin: " << std::string(buf, buflen - 1)
+            << endl << "# " << flush;
     }
     else
     {
-        if (ba::error::eof == error)
+        if (ba::error::eof == err)
         {
             cout << "stdin closed." << flush;
             *running = 0;
         }
         else
-            cout << "stdin error: " << error << endl;
+            cout << "stdin error: " << err << endl;
     }
 }
 
@@ -63,30 +69,33 @@ int main(int, char const* [])
 
     cout << "Type to watch stdin activity\n"
          << "Send the following signals to watch the program react #"
-         << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP << ", #" << SIGUSR1 << ", #" << SIGUSR2
+         << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP
+         << ", #" << SIGUSR1 << ", #" << SIGUSR2
          << "\nUse ^D to exit"
          << endl << "# " << flush;
 
     int running = 1;
-    int sigint_restart_wait = 1;
-    int sighup_restart_wait = 1;
+    int intf = 1;
+    int hupf = 1;
     while (running)
     {
         ios.reset();
 
-        if (sigint_restart_wait)
+        if (intf)
         {
-            sigint_restart_wait = 0;
-            sigint.async_wait(boost::bind(on_signal, _1, _2, &sigint_restart_wait));
+            intf = 0;
+            sigint.async_wait(boost::bind(on_signal, _1, _2, &intf));
         }
-        if (sighup_restart_wait)
+        if (hupf)
         {
-            sighup_restart_wait = 0;
-            sighup.async_wait(boost::bind(on_signal, _1, _2, &sighup_restart_wait));
+            hupf = 0;
+            sighup.async_wait(boost::bind(on_signal, _1, _2, &hupf));
         }
 
         char buf[1024];
-        std_in.async_read_some(ba::buffer(buf, sizeof buf), boost::bind(on_stdin, _1, buf, _2, &running));
+        std_in.async_read_some(
+            ba::buffer(buf, sizeof buf),
+            boost::bind(on_stdin, _1, buf, _2, &running));
 
         ios.run_one();
     }
