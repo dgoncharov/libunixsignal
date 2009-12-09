@@ -111,7 +111,7 @@ signalfd uses the following syscalls pipe(), sigaction(), close(), write() and i
 @*
 signalfd()
 
-@itemize @w
+@itemize @w{}
 @item
 Effects: Creates an instance of signalfd. Sets the disposition of the specified signals to a pointer to a function.
 Creates a file descritor and assiciated it with the specified signal.
@@ -126,7 +126,7 @@ Throws: boost::system_error if one of the syscalls fails. If an exception is thr
 @*
 ~signalfd()
 
-@itemize @w
+@itemize @w{}
 @item
 Effects: Restores the original signals disposition. Closes the file descriptor.
 
@@ -140,7 +140,7 @@ Throws: Will not throw.
 @*
 int fd() const
 
-@itemize @w
+@itemize @w{}
 @item
 Returns: The file descriptor associated with the signals.
 
@@ -196,8 +196,8 @@ int main(int, char const* [])
 
     cout << "Type to watch stdin activity\n"
          << "Send the following signals to watch the program react #"
-         << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP
-	 << ", #" << SIGUSR1 << ", #" << SIGUSR2
+         << SIGINT << ", #" << SIGTERM
+         << ", #" << SIGHUP << ", #" << SIGUSR1 << ", #" << SIGUSR2
          << "\nUse ^D to exit"
          << endl << "# " << flush;
     while (std::cin)
@@ -279,7 +279,7 @@ signal_handler is neither copyable nor assignable.
 @*
 explicit signal_handler(boost::asio::io_service& ios)
 
-@itemize @w
+@itemize @w{}
 @item
 Effects: Creates instances of signalfd and boost::asio::posix::stream_descriptor. All the effects of signalfd constructor.
 
@@ -293,7 +293,7 @@ Throws: Anything that signalfd constructor can throw.
 @*
 ~signal_handler()
 
-@itemize @w
+@itemize @w{}
 @item
 Effects: signal_handler doesn't have an explicit desctructor.
 However, when an object of signal_handler is destroyed an object of signalfd is also destroyed and so, destruction of signal_handler has all the effects of destruction of signalfd.
@@ -309,7 +309,7 @@ Throws: Will not throw.
 template <typename Handler>
 void async_wait(Handler h);
 
-@itemize @w
+@itemize @w{}
 @item
 Effects: Initiates an asynchronous wait against the associated signals and immediately returns.
 For each call to async_wait(), the supplied handler will be called exactly once after one of the associated signals arrives.
@@ -394,8 +394,8 @@ int main(int, char const* [])
 
     cout << "Type to watch stdin activity\n"
          << "Send the following signals to watch the program react #"
-         << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP
-         << ", #" << SIGUSR1 << ", #" << SIGUSR2
+         << SIGINT << ", #" << SIGTERM << ", #"
+         << SIGHUP << ", #" << SIGUSR1 << ", #" << SIGUSR2
          << "\nUse ^D to exit"
          << endl << "# " << flush;
 
