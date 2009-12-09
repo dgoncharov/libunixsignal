@@ -25,12 +25,9 @@ Type make sample to build the samples.
 This will build sigselect from example/sigselect.cpp and sighandler from example/sighandler.cpp.
 You can run the examples by typing example/sigselect or example/sighandler.
 Type make check to run the unit test.
+Type make info to build the documentation.
 
 The original proposal on the boost mail list can be found here.  http://lists.boost.org/Archives/boost/2009/03/149890.php
-
-Known bugs:
-When _GLIBCXX_DEBUG is defined the boost::asio library crashes with the following error "attempt to copy-construct an iterator from a singular iterator".
-test_multisignal_handler2() fails on linux for an unknown reason. However, test_multisignal_handler2() passes on freebsd.
 
 Tested on
 -amd64 freebsd 7.2 gcc-4.1.2
