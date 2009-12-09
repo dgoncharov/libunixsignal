@@ -18,7 +18,7 @@ Distributed under the BSD license.
 @titlepage
 @title unixsignal
 @subtitle for version @value{VERSION}, @value{UPDATED}
-@author Dmitry Goncharov (@email{dgoncharov@@users.sourceforge.net})
+@author Dmitry Goncharov (@email{dgoncharov@@users.sf.net})
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -83,22 +83,20 @@ public:
 @}
 @end example
 
-
+@*
 @b{Description}
 
 
 Class template signalfd creates a file descriptor and associates it with one or more signals specified by the template parameters S1, S2,... S30.
-The user has to specify at least one signal. Up to 30 signals can be associated with one file descriptor.
+At least one signal has to be specified. Up to 30 signals can be associated with one file descriptor.
 
 This file descriptor becomes ready for reading each time one of the associated signals arrives.
-Users can use select/poll multiplexing to wait for this file descriptor to become reading for reading.
+Select/poll multiplexing can be used to wait for this file descriptor to become reading for reading.
 After the file desriptor became ready for reading read() returns an instance of struct siginfo_t in the supplied buffer.
 The buffer must be at least sizeof(siginfo_t) bytes long. The struct siginfo_t describes the arrived signal.
-If the user fails to read sizeof(siginfo_t) bytes from the file descriptor after it became ready for reading
-the descriptor effectively remains in the ready-for-reading state.
-In this case select/poll multiplexing mechanism will immediately return this file descriptor as ready for reading.
+The descriptor remains in the ready-for-reading state until sizeof(siginfo_t) bytes get read.
 
-Users must not close this file descriptor. This file descriptor cannot be passed to write().
+This file descriptor cannot be passed to write().
 
 Each instance of signalfd allocates a buffer. Therefore an application can end up with lots of buffers if it creates lots of signalfd. If an application creates one singalfd and associates it with all interesting signals only one buffer is allocated.
 
@@ -110,7 +108,7 @@ signalfd is neither copyable nor assignable.
 
 signalfd uses the following syscalls pipe(), sigaction(), close(), write() and is portable as long as these syscalls are portable.
 
-
+@*
 signalfd()
 
 @itemize @w
@@ -125,6 +123,7 @@ Postconditions: this->fd() return the file descriptor associated with the signal
 Throws: boost::system_error if one of the syscalls fails. If an exception is thrown the signals disposition remains intact.
 @end itemize
 
+@*
 ~signalfd()
 
 @itemize @w
@@ -138,6 +137,7 @@ Postconditions: The original signals disposition is restored.
 Throws: Will not throw.
 @end itemize
 
+@*
 int fd() const
 
 @itemize @w
@@ -148,6 +148,7 @@ Returns: The file descriptor associated with the signals.
 Throws: Will not throw.
 @end itemize
 
+@*
 @b{Example}
 
 
@@ -179,7 +180,7 @@ void readsig(int fd)
         cerr << "Cannot read: read(): " << std::strerror(errno) << endl;
     else if (static_cast<std::size_t>(s) < sizeof siginfo)
         cerr
-	    << "\nCannot read the whole siginfo_t struct. read " << s << " bytes"
+	    << "\nCannot read siginfo_t. Read " << s << " bytes"
 	    << endl;
     else
         cout << " #" << siginfo.si_signo << endl;
@@ -262,19 +263,20 @@ public:
 @}
 @end example
 
+@*
 @b{Description}
 
 Class template signal_handler extends boost::asio with the ability to invoke a handler whenever a unix signal arrives.
 
 An instance of signal_handler can be associated with one or more signals specified by the template parameters S1, S2,... S30.
-The user has to specify at least one signal. Up to 30 signals can be associated with one signal_handler. 
+At least one signal has to be specified. Up to 30 signals can be associated with one signal_handler.
 async_wait() along with boost::asio::io_service event processing can be used to asynchronously wait for the associated signals.
 After one of the associated signals arrives the handler supplied to async_wait() will be invoked.
 An instance of siginfo_t which describes the arrived signal will be passed to the handler.
 
 signal_handler is neither copyable nor assignable.
 
-
+@*
 explicit signal_handler(boost::asio::io_service& ios)
 
 @itemize @w
@@ -288,6 +290,7 @@ Postconditions: this->async_wait() initiates an asynchronous wait for the signal
 Throws: Anything that signalfd constructor can throw.
 @end itemize
 
+@*
 ~signal_handler()
 
 @itemize @w
@@ -302,6 +305,7 @@ Postconditions: All the postconditions of signalfd.
 Throws: Will not throw.
 @end itemize
 
+@*
 template <typename Handler>
 void async_wait(Handler h);
 
@@ -320,6 +324,7 @@ Postconditions: A subsequent arrival of one of the associated signals will cause
 Throws: Anything that the underlying boost::asio::async_read() call can throw. Also, anything that the handler copy constructor can throw.
 @end itemize
 
+@*
 @b{Example}
 
 @example
@@ -347,29 +352,34 @@ namespace ba = boost::asio;
 namespace bap = boost::asio::posix;
 namespace bs = boost::system;
 
-void on_signal(bs::error_code const& error, siginfo_t const& siginfo, int* invoked)
+void on_signal(bs::error_code const& err, siginfo_t const& siginfo, int* invoked)
 @{
-    if (!error)
-        cout << "signal #" << siginfo.si_signo << " received" << endl << "# " << flush;
+    if (!err)
+        cout
+            << "signal #" << siginfo.si_signo << " received"
+            << endl << "# " << flush;
     *invoked = 1;
 @}
 
-void on_stdin(bs::error_code const& error, char const* buf, std::size_t buflen, int* running)
+void on_stdin(
+    bs::error_code const& err, char const* buf, std::size_t buflen, int* running)
 @{
-    if (!error)
+    if (!err)
     @{
         assert(buflen >= 1 && "Incorrect usage of boost::asio");
-        cout << "activity on stdin: " << std::string(buf, buflen - 1) << endl << "# " << flush;
+        cout 
+            << "activity on stdin: " << std::string(buf, buflen - 1)
+            << endl << "# " << flush;
     @}
     else
     @{
-        if (ba::error::eof == error)
+        if (ba::error::eof == err)
         @{
             cout << "stdin closed." << flush;
             *running = 0;
         @}
         else
-            cout << "stdin error: " << error << endl;
+            cout << "stdin error: " << err << endl;
     @}
 @}
 
@@ -385,31 +395,32 @@ int main(int, char const* [])
     cout << "Type to watch stdin activity\n"
          << "Send the following signals to watch the program react #"
          << SIGINT << ", #" << SIGTERM << ", #" << SIGHUP
-	       << ", #" << SIGUSR1 << ", #" << SIGUSR2
+         << ", #" << SIGUSR1 << ", #" << SIGUSR2
          << "\nUse ^D to exit"
          << endl << "# " << flush;
 
     int running = 1;
-    int sigint_restart_wait = 1;
-    int sighup_restart_wait = 1;
+    int intf = 1;
+    int hupf = 1;
     while (running)
     @{
         ios.reset();
 
-        if (sigint_restart_wait)
+        if (intf)
         @{
-            sigint_restart_wait = 0;
-            sigint.async_wait(boost::bind(on_signal, _1, _2, &sigint_restart_wait));
+            intf = 0;
+            sigint.async_wait(boost::bind(on_signal, _1, _2, &intf));
         @}
-        if (sighup_restart_wait)
+        if (hupf)
         @{
-            sighup_restart_wait = 0;
-            sighup.async_wait(boost::bind(on_signal, _1, _2, &sighup_restart_wait));
+            hupf = 0;
+            sighup.async_wait(boost::bind(on_signal, _1, _2, &hupf));
         @}
 
         char buf[1024];
         std_in.async_read_some(
-	    ba::buffer(buf, sizeof buf), boost::bind(on_stdin, _1, buf, _2, &running));
+            ba::buffer(buf, sizeof buf),
+            boost::bind(on_stdin, _1, buf, _2, &running));
 
         ios.run_one();
     @}
