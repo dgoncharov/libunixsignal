@@ -1,22 +1,20 @@
 \input texinfo
 @setfilename unixsignal.info
 @include version.texi
-@settitle unixsignal @value{VERSION} manual
+@settitle libunixsignal @value{VERSION} manual
 
 @copying
-This manual is for libunixsignal (version @value{VERSION}, @value{UPDATED}).
-
 Copyright @copyright{} 2009 Dmitry Goncharov.
 Distributed under the BSD license.
 @end copying
 
 @dircategory libraries
 @direntry
-* unixsignal: unixsignal.
+* libunixsignal: libunixsignal.
 @end direntry
 
 @titlepage
-@title unixsignal
+@title libunixsignal manual
 @subtitle for version @value{VERSION}, @value{UPDATED}
 @author Dmitry Goncharov (@email{dgoncharov@@users.sf.net})
 @page
@@ -28,7 +26,7 @@ Distributed under the BSD license.
 
 @ifnottex
 @node Top
-@top unixsignal
+@top libunixsignal manual
 
 This manual is for libunixsignal (version @value{VERSION}, @value{UPDATED}).
 @end ifnottex
