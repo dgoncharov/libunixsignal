@@ -17,8 +17,6 @@ Distributed under the BSD license.
 @title libunixsignal manual
 @subtitle for version @value{VERSION}, @value{UPDATED}
 @author Dmitry Goncharov (@email{dgoncharov@@users.sf.net})
-@page
-@vskip 0pt plus 1filll
 @insertcopying
 @end titlepage
 
@@ -29,6 +27,7 @@ Distributed under the BSD license.
 @top libunixsignal manual
 
 This manual is for libunixsignal (version @value{VERSION}, @value{UPDATED}).
+@insertcopying
 @end ifnottex
 
 @menu
