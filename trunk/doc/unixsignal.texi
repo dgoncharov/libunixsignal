@@ -107,43 +107,43 @@ signalfd is neither copyable nor assignable.
 signalfd uses the following syscalls pipe(), sigaction(), close(), write() and is portable as long as these syscalls are portable.
 
 @*
-signalfd()
+@b{signalfd()}
 
 @itemize @w{}
 @item
-Effects: Creates an instance of signalfd. Sets the disposition of the specified signals to a pointer to a function.
+@b{Effects}: Creates an instance of signalfd. Sets the disposition of the specified signals to a pointer to a function.
 Creates a file descritor and assiciated it with the specified signal.
 
 @item
-Postconditions: this->fd() return the file descriptor associated with the signal.
+@b{Postconditions}: this->fd() return the file descriptor associated with the signal.
 
 @item
-Throws: boost::system_error if one of the syscalls fails. If an exception is thrown the signals disposition remains intact.
+@b{Throws}: boost::system_error if one of the syscalls fails. If an exception is thrown the signals disposition remains intact.
 @end itemize
 
 @*
-~signalfd()
+@b{~signalfd()}
 
 @itemize @w{}
 @item
-Effects: Restores the original signals disposition. Closes the file descriptor.
+@b{Effects}: Restores the original signals disposition. Closes the file descriptor.
 
 @item
-Postconditions: The original signals disposition is restored.
+@b{Postconditions}: The original signals disposition is restored.
 
 @item
-Throws: Will not throw.
+@b{Throws}: Will not throw.
 @end itemize
 
 @*
-int fd() const
+@b{int fd() const}
 
 @itemize @w{}
 @item
-Returns: The file descriptor associated with the signals.
+@b{Returns}: The file descriptor associated with the signals.
 
 @item
-Throws: Will not throw.
+@b{Throws}: Will not throw.
 @end itemize
 
 @*
@@ -275,51 +275,50 @@ An instance of siginfo_t which describes the arrived signal will be passed to th
 signal_handler is neither copyable nor assignable.
 
 @*
-explicit signal_handler(boost::asio::io_service& ios)
+@b{explicit signal_handler(boost::asio::io_service& ios)}
 
 @itemize @w{}
 @item
-Effects: Creates instances of signalfd and boost::asio::posix::stream_descriptor. All the effects of signalfd constructor.
+@b{Effects}: Creates instances of signalfd and boost::asio::posix::stream_descriptor. All the effects of signalfd constructor.
 
 @item
-Postconditions: this->async_wait() initiates an asynchronous wait for the signal.
+@b{Postconditions}: this->async_wait() initiates an asynchronous wait for the signal.
 
 @item
-Throws: Anything that signalfd constructor can throw.
+@b{Throws}: Anything that signalfd constructor can throw.
 @end itemize
 
 @*
-~signal_handler()
+@b{~signal_handler()}
 
 @itemize @w{}
 @item
-Effects: signal_handler doesn't have an explicit desctructor.
+@b{Effects}: signal_handler doesn't have an explicit desctructor.
 However, when an object of signal_handler is destroyed an object of signalfd is also destroyed and so, destruction of signal_handler has all the effects of destruction of signalfd.
 
 @item
-Postconditions: All the postconditions of signalfd.
+@b{Postconditions}: All the postconditions of signalfd.
 
 @item
-Throws: Will not throw.
+@b{Throws}: Will not throw.
 @end itemize
 
 @*
-template <typename Handler>
-void async_wait(Handler h);
+@b{template <typename Handler> void async_wait(Handler h)}
 
 @itemize @w{}
 @item
-Effects: Initiates an asynchronous wait against the associated signals and immediately returns.
+@b{Effects}: Initiates an asynchronous wait against the associated signals and immediately returns.
 For each call to async_wait(), the supplied handler will be called exactly once after one of the associated signals arrives.
 Parameter handler has to be of the following signature void handler(const boost::system::error_code& error, siginfo_t const&);
 The handler has to be copyable.
 Invocation of the handler will be performed in a manner equivalent to using boost::asio::io_service::post().
 
 @item
-Postconditions: A subsequent arrival of one of the associated signals will cause one invocation of the provided handler.
+@b{Postconditions}: A subsequent arrival of one of the associated signals will cause one invocation of the provided handler.
 
 @item
-Throws: Anything that the underlying boost::asio::async_read() call can throw. Also, anything that the handler copy constructor can throw.
+@b{Throws}: Anything that the underlying boost::asio::async_read() call can throw. Also, anything that the handler copy constructor can throw.
 @end itemize
 
 @*
