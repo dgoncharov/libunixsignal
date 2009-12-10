@@ -37,6 +37,7 @@ This manual is for libunixsignal (version @value{VERSION}, @value{UPDATED}).
 * Introduction::
 * Header <unixsignal/signalfd.hpp>::
 * Header <unixsignal/signal_handler.hpp>::
+* Acknowledgments::
 @end menu
 
 
@@ -428,6 +429,10 @@ int main(int, char const* [])
 @}
 @end example
 
+@node Acknowledgments
+@chapter Acknowledgments
+
+Thanks to Amy Krishnevsky for proofreading.
 
 @bye
 
