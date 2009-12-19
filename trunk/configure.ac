@@ -136,7 +136,6 @@ AC_ARG_ENABLE(
 CXXFLAGS=`echo $CXXFLAGS | sed -e "s/-O[[0-3]]//g; s/-Os//g; s/-fomit-frame-pointer//g"`
 if test x"$debuger" = x"yes"; then
     AC_DEFINE(_DEBUG,, [Enable debugging])
-    AC_DEFINE(_GLIBCXX_DEBUG,, [gcc debug mode])
     CXXFLAGS="$CXXFLAGS -O0 -g"
 else
     AC_DEFINE(NDEBUG,, [Disable debugging])
