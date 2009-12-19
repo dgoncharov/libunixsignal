@@ -6,6 +6,8 @@
 @copying
 Copyright @copyright{} 2009 Dmitry Goncharov.
 Distributed under the BSD license.
+@*
+Homepage github.com/dgoncharov/libunixsignal.
 @end copying
 
 @dircategory libraries
@@ -428,7 +430,7 @@ int main(int, char const* [])
 @node Acknowledgments
 @chapter Acknowledgments
 
-Thanks to Amy Krishnevsky for proofreading.
+Thank Amy Krishnevsky for proofreading.
 
 @bye
 
