@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Dmitry Goncharov
+// Copyright (c) 2009, 2010 Dmitry Goncharov
 //
 // Distributed under the BSD License.
 // (See accompanying file COPYING).
@@ -50,17 +50,27 @@ public:
             throw boost::system::system_error(
                 boost::system::error_code(errno, boost::system::get_system_category()));
 
-        struct sigaction act;
-        std::memset(&act, 0, sizeof act);
-        std::memset(&m_oldact, 0, sizeof m_oldact);
-        act.sa_flags = SA_SIGINFO;
-        act.sa_sigaction = on_signal;
-
         int const signals[] = {
             S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
             S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
             S21, S22, S23, S24, S25, S26, S27, S28, S29, S30};
         BOOST_STATIC_ASSERT((nsignals <= sizeof signals / sizeof signals[0]));
+
+        struct sigaction act;
+        std::memset(&act, 0, sizeof act);
+        std::memset(&m_oldact, 0, sizeof m_oldact);
+        act.sa_flags = SA_SIGINFO;
+        act.sa_sigaction = on_signal;
+        // Prevent the signal handler from being interrupted by a signal of a different type.
+        sigemptyset(&act.sa_mask);
+        for (std::size_t i = 0; i < nsignals; ++i)
+        {
+            assert(signals[i] > 0);
+            int const s = sigaddset(&act.sa_mask, signals[i]);
+            if (s < 0)
+                throw boost::system::system_error(
+                    boost::system::error_code(errno, boost::system::get_system_category()));
+        } 
         for (std::size_t i = 0; i < nsignals; ++i)
         {
             assert(signals[i] > 0);

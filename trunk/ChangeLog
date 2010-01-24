@@ -1,3 +1,7 @@
+0.0.3
+    2010.01.24 Bugfix. All signals specified by the user are blocked while the signal
+    handler is running.
+
 0.0.2
     Updated documentation
 
