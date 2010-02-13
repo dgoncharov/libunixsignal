@@ -97,6 +97,9 @@ The buffer must be at least sizeof(siginfo_t) bytes long. The struct siginfo_t d
 The descriptor remains in the ready-for-reading state until sizeof(siginfo_t) bytes get read.
 
 This file descriptor cannot be passed to write().
+This file descriptor has the FD_CLOEXEC flag set and the O_NONBLOCK flag clear.
+The fcntl() function can be used to change both these flags.
+Three syscalls are required to create a file descriptor and set the FD_CLOEXEC flag. This is subject to thread racing. It is possible that one thread creates an instance of signalfd and another thread invokes fork() and exec() before the FD_CLOEXEC flag is set.
 
 Each instance of signalfd allocates a buffer. Therefore an application can end up with lots of buffers if it creates lots of signalfd. If an application creates one singalfd and associates it with all relevant signals, only one buffer is allocated.
 
