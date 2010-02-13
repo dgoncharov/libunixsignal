@@ -19,6 +19,28 @@
 #include <boost/system/system_error.hpp>
 
 namespace unixsignal {
+namespace detail {
+
+inline
+void throw_system_error(int err, char const* what)
+{
+    throw boost::system::system_error(
+        boost::system::error_code(err, boost::system::get_system_category()),
+        what);
+}
+
+inline
+void set_file_flags(int fd, int flags)
+{
+   int const f = fcntl(fd, F_GETFL, 0);
+   if (f < 0)
+        throw_system_error(errno, "fcntl()");
+   int const s = fcntl(fd, F_SETFL, f | flags);
+   if (s < 0)
+       throw_system_error(errno, "fcntl()");
+}
+
+} // namespace detail
 
 template <
     int S1, int S2 = 0, int S3 = 0, int S4 = 0, int S5 = 0,
@@ -35,23 +57,12 @@ public:
         int p[2];
         int const s = pipe(p);
         if (s < 0)
-            throw boost::system::system_error(
-                boost::system::error_code(errno, boost::system::get_system_category()),
-                "pipe()");
+            detail::throw_system_error(errno, "pipe()");
         m_r.fd = p[0];
         m_w.fd = p[1];
         m_wfd = m_w.fd;
 
-        int const f = fcntl(m_w.fd, F_GETFL, 0);
-        if (f < 0)
-            throw boost::system::system_error(
-                boost::system::error_code(errno, boost::system::get_system_category()),
-                "fcntl()");
-        int const s1 = fcntl(m_w.fd, F_SETFL, f | O_NONBLOCK);
-        if (s1 < 0)
-            throw boost::system::system_error(
-                boost::system::error_code(errno, boost::system::get_system_category()),
-                "fcntl()");
+        detail::set_file_flags(m_w.fd, O_NONBLOCK);
 
         int const signals[] = {
             S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
@@ -84,9 +95,7 @@ public:
                 // The "goes down to" operator.
                 while (i --> 0)
                     sigaction(signals[i], &m_oldact[i], 0);
-                throw boost::system::system_error(
-                    boost::system::error_code(errcode, boost::system::get_system_category()),
-                    "sigaction");
+                detail::throw_system_error(errcode, "sigaction()");
             }
         }
     }
