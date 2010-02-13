@@ -1,4 +1,3 @@
-Use FD_CLOEXEC
 A test which verifies that signal dispositions get restored.
 A test which verifies that write() never blocks, even when the pipe is full.
 A memory efficient class which doesn't restore signal dispositions.
