@@ -62,7 +62,8 @@ public:
         m_w.fd = p[1];
         m_wfd = m_w.fd;
 
-        detail::set_file_flags(m_w.fd, O_NONBLOCK);
+        detail::set_file_flags(m_w.fd, O_NONBLOCK | FD_CLOEXEC);
+        detail::set_file_flags(m_r.fd, FD_CLOEXEC);
 
         int const signals[] = {
             S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
