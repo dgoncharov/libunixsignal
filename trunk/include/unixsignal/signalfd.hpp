@@ -36,7 +36,8 @@ public:
         int const s = pipe(p);
         if (s < 0)
             throw boost::system::system_error(
-                boost::system::error_code(errno, boost::system::get_system_category()));
+                boost::system::error_code(errno, boost::system::get_system_category()),
+                "pipe()");
         m_r.fd = p[0];
         m_w.fd = p[1];
         m_wfd = m_w.fd;
@@ -44,11 +45,13 @@ public:
         int const f = fcntl(m_w.fd, F_GETFL, 0);
         if (f < 0)
             throw boost::system::system_error(
-                boost::system::error_code(errno, boost::system::get_system_category()));
+                boost::system::error_code(errno, boost::system::get_system_category()),
+                "fcntl()");
         int const s1 = fcntl(m_w.fd, F_SETFL, f | O_NONBLOCK);
         if (s1 < 0)
             throw boost::system::system_error(
-                boost::system::error_code(errno, boost::system::get_system_category()));
+                boost::system::error_code(errno, boost::system::get_system_category()),
+                "fcntl()");
 
         int const signals[] = {
             S1, S2, S3, S4, S5, S6, S7, S8, S9, S10,
@@ -69,7 +72,8 @@ public:
             int const s = sigaddset(&act.sa_mask, signals[i]);
             if (s < 0)
                 throw boost::system::system_error(
-                    boost::system::error_code(errno, boost::system::get_system_category()));
+                    boost::system::error_code(errno, boost::system::get_system_category()),
+                    "sigaddset()");
         } 
         for (std::size_t i = 0; i < nsignals; ++i)
         {
@@ -83,7 +87,8 @@ public:
                 while (i --> 0)
                     sigaction(signals[i], &m_oldact[i], 0);
                 throw boost::system::system_error(
-                    boost::system::error_code(errcode, boost::system::get_system_category()));
+                    boost::system::error_code(errcode, boost::system::get_system_category()),
+                    "sigaction");
             }
         }
     }
