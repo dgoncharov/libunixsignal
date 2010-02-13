@@ -1,4 +1,7 @@
 0.0.4
+    2010.02.13 The file descriptors of the pipe have the FD_CLOEXEC flag set.
+		Documentation updated.
+    2010.02.13 Refactoring.
     2010.02.13 Better error messages.
 
 0.0.3
