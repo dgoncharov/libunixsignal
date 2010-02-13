@@ -69,11 +69,9 @@ public:
         for (std::size_t i = 0; i < nsignals; ++i)
         {
             assert(signals[i] > 0);
-            int const s = sigaddset(&act.sa_mask, signals[i]);
-            if (s < 0)
-                throw boost::system::system_error(
-                    boost::system::error_code(errno, boost::system::get_system_category()),
-                    "sigaddset()");
+            // No need to check the return value.
+            // An invalid signal number will be caught by sigaction().
+            sigaddset(&act.sa_mask, signals[i]);
         } 
         for (std::size_t i = 0; i < nsignals; ++i)
         {
