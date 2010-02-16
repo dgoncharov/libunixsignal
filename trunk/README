@@ -32,5 +32,5 @@ The original proposal on the boost mail list can be found here.  http://lists.bo
 Tested on
 -amd64 freebsd 7.2 gcc-4.1.2
 -x86_64 linux 2.6.30-gentoo-r4 gcc-4.4.1
--i686 linux 2.6.31-gentoo gcc-4.4.1
+-i686 linux 2.6.31-gentoo gcc-4.4.1, i686 2.6.32-gentoo gcc-4.4.3.
 
