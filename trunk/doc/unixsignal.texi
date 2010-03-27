@@ -183,8 +183,8 @@ void readsig(int fd)
         cerr << "Cannot read: read(): " << std::strerror(errno) << endl;
     else if (static_cast<std::size_t>(s) < sizeof siginfo)
         cerr
-	    << "\nCannot read siginfo_t. Read " << s << " bytes"
-	    << endl;
+            << "\nCannot read siginfo_t. Read " << s << " bytes"
+            << endl;
     else
         cout << " #" << siginfo.si_signo << endl;
 @}
