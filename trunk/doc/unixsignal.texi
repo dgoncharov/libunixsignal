@@ -7,7 +7,7 @@
 Copyright @copyright{} 2009 Dmitry Goncharov.
 Distributed under the BSD license.
 @*
-Homepage github.com/dgoncharov/libunixsignal.
+Homepage http://github.com/dgoncharov/libunixsignal.
 @end copying
 
 @dircategory libraries
