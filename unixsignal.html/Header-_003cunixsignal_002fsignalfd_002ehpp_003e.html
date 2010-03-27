@@ -1,0 +1,208 @@
+<html lang="en">
+<head>
+<title>Header &lt;unixsignal/signalfd.hpp&gt; - libunixsignal 0.0.4 manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="libunixsignal 0.0.4 manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Introduction.html#Introduction" title="Introduction">
+<link rel="next" href="Header-_003cunixsignal_002fsignal_005fhandler_002ehpp_003e.html#Header-_003cunixsignal_002fsignal_005fhandler_002ehpp_003e" title="Header &lt;unixsignal/signal_handler.hpp&gt;">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009 Dmitry Goncharov.
+Distributed under the BSD license.
+
+Homepage github.com/dgoncharov/libunixsignal.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Header-%3cunixsignal%2fsignalfd.hpp%3e"></a>
+<a name="Header-_003cunixsignal_002fsignalfd_002ehpp_003e"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Header-_003cunixsignal_002fsignal_005fhandler_002ehpp_003e.html#Header-_003cunixsignal_002fsignal_005fhandler_002ehpp_003e">Header &lt;unixsignal/signal_handler.hpp&gt;</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Introduction.html#Introduction">Introduction</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr>
+</div>
+
+<h2 class="chapter">2 Header &lt;unixsignal/signalfd.hpp&gt;</h2>
+
+<p><b>Synopsis</b>
+
+<pre class="example">     namespace unixsignal {
+     
+     template &lt;
+         int S1, int S2 = 0, int S3 = 0, int S4 = 0, int S5 = 0,
+         int S6 = 0, int S7 = 0, int S8 = 0, int S9 = 0, int S10 = 0,
+         int S11 = 0, int S12 = 0, int S13 = 0, int S14 = 0, int S15 = 0,
+         int S16 = 0, int S17 = 0, int S18 = 0, int S19 = 0, int S20 = 0,
+         int S21 = 0, int S22 = 0, int S23 = 0, int S24 = 0, int S25 = 0,
+         int S26 = 0, int S27 = 0, int S28 = 0, int S29 = 0, int S30 = 0&gt;
+     class signalfd
+     {
+     public:
+         signalfd();
+         ~signalfd();
+     
+         int fd() const;
+     };
+     
+     }
+</pre>
+   <p><br>
+<b>Description</b>
+
+   <p>The class template signalfd creates a file descriptor and associates it with one or more signals specified by the template parameters S1, S2,... S30. 
+At least one signal has to be specified. Up to 30 signals can be associated with one file descriptor.
+
+   <p>This file descriptor becomes ready for reading each time one of the associated signals arrives. 
+Select/poll multiplexing can be used to wait for this file descriptor to become reading for reading. 
+When the file descriptor is ready for reading read() returns an instance of struct siginfo_t in the supplied buffer. 
+The buffer must be at least sizeof(siginfo_t) bytes long. The struct siginfo_t describes the arrived signal. 
+The descriptor remains in the ready-for-reading state until sizeof(siginfo_t) bytes get read.
+
+   <p>This file descriptor cannot be passed to write(). 
+This file descriptor has the FD_CLOEXEC flag set and the O_NONBLOCK flag clear. 
+The fcntl() function can be used to change both these flags. 
+Three syscalls are required to create a file descriptor and set the FD_CLOEXEC flag. This is subject to thread racing. It is possible that one thread creates an instance of signalfd and another thread invokes fork() and exec() before the FD_CLOEXEC flag is set.
+
+   <p>Each instance of signalfd allocates a buffer. Therefore an application can end up with lots of buffers if it creates lots of signalfd. If an application creates one singalfd and associates it with all relevant signals, only one buffer is allocated.
+
+   <p>The class template signalfd keeps every struct siginfo_t in the internal buffer until it is read. Therefore, there can be more than one instance of siginfo_t waiting to be read. Since the size of the buffer is limited if signals arrive more often than structs siginfo_t are read from the file descriptor, the new signals get discarded as soon as the buffer is full. 
+Structs siginfo_t are read from the buffer in FIFO order. 
+The size of the buffer depends on the kernel and is usually a few KB.
+
+   <p>An instance of signalfd is neither copyable nor assignable.
+
+   <p>The class template signalfd uses the following syscalls pipe(), sigaction(), close(), write(). It is portable as long as these syscalls are portable.
+
+   <p><br>
+<b>signalfd()</b>
+
+     <ul>
+<li><b>Effects</b>: Creates an instance of signalfd. Sets the disposition of the specified signals to a an internal function. 
+Creates a file descritor and assiciates it with the specified signals.
+
+     <li><b>Postconditions</b>: this-&gt;fd() return the file descriptor associated with the signal.
+
+     <li><b>Throws</b>: boost::system_error if one of the syscalls fails. If an exception is thrown the signals disposition remains intact. 
+</ul>
+
+   <p><br>
+<b>~signalfd()</b>
+
+     <ul>
+<li><b>Effects</b>: Restores the original signals disposition. Closes the file descriptor.
+
+     <li><b>Postconditions</b>: The original signals disposition is restored.
+
+     <li><b>Throws</b>: Will not throw. 
+</ul>
+
+   <p><br>
+<b>int fd() const</b>
+
+     <ul>
+<li><b>Returns</b>: The file descriptor associated with the signals.
+
+     <li><b>Throws</b>: Will not throw. 
+</ul>
+
+   <p><br>
+<b>Example</b>
+
+<pre class="example">     #include &lt;unixsignal/signalfd.hpp&gt;
+     #include &lt;sys/select.h&gt;
+     #include &lt;signal.h&gt;
+     #include &lt;cstdio&gt;
+     #include &lt;cstdlib&gt;
+     #include &lt;cstddef&gt;
+     #include &lt;cerrno&gt;
+     #include &lt;cstring&gt;
+     #include &lt;iostream&gt;
+     #include &lt;iomanip&gt;
+     #include &lt;string&gt;
+     
+     using std::cout;
+     using std::cin;
+     using std::endl;
+     using std::cerr;
+     using std::flush;
+     
+     void readsig(int fd)
+     {
+         cout &lt;&lt; "received signal";
+         siginfo_t siginfo;
+         ssize_t const s = read(fd, &amp;siginfo, sizeof siginfo);
+         if (s &lt; 0)
+             cerr &lt;&lt; "Cannot read: read(): " &lt;&lt; std::strerror(errno) &lt;&lt; endl;
+         else if (static_cast&lt;std::size_t&gt;(s) &lt; sizeof siginfo)
+             cerr
+     	    &lt;&lt; "\nCannot read siginfo_t. Read " &lt;&lt; s &lt;&lt; " bytes"
+     	    &lt;&lt; endl;
+         else
+             cout &lt;&lt; " #" &lt;&lt; siginfo.si_signo &lt;&lt; endl;
+     }
+     
+     int main(int, char const* [])
+     {
+         unixsignal::signalfd&lt;SIGINT, SIGTERM&gt; sigint;
+         int const intfd = sigint.fd();
+     
+         unixsignal::signalfd&lt;SIGHUP, SIGUSR1, SIGUSR2&gt; sighup;
+         int const hupfd = sighup.fd();
+     
+         cout &lt;&lt; "Type to watch stdin activity\n"
+              &lt;&lt; "Send the following signals to watch the program react #"
+              &lt;&lt; SIGINT &lt;&lt; ", #" &lt;&lt; SIGTERM
+              &lt;&lt; ", #" &lt;&lt; SIGHUP &lt;&lt; ", #" &lt;&lt; SIGUSR1 &lt;&lt; ", #" &lt;&lt; SIGUSR2
+              &lt;&lt; "\nUse ^D to exit"
+              &lt;&lt; endl &lt;&lt; "# " &lt;&lt; flush;
+         while (std::cin)
+         {
+             fd_set rfds;
+             FD_ZERO(&amp;rfds);
+             FD_SET(STDIN_FILENO, &amp;rfds);
+             FD_SET(intfd, &amp;rfds);
+             FD_SET(hupfd, &amp;rfds);
+     
+             int const s = select(std::max(intfd, hupfd) + 1, &amp;rfds, 0, 0, 0);
+             if (s &lt; 0)
+             {
+                 if (EINTR != errno)
+                     cerr &lt;&lt; "select(): " &lt;&lt; std::strerror(errno) &lt;&lt; endl;
+                 continue;
+             }
+             if (FD_ISSET(0, &amp;rfds))
+             {
+                 std::string s;
+                 std::getline(cin, s);
+                 cout &lt;&lt; "activity on stdin: " &lt;&lt; s &lt;&lt; endl;
+             }
+             else if (FD_ISSET(intfd, &amp;rfds))
+                 readsig(intfd);
+             else if (FD_ISSET(hupfd, &amp;rfds))
+                 readsig(hupfd);
+             cout &lt;&lt; "# " &lt;&lt; flush;
+         }
+         cout &lt;&lt; "\nstdin closed. Bye" &lt;&lt; endl;
+     }
+</pre>
+   <p><b>Note</b>
+
+   <p>Linux features the nonstandard syscall signalfd(), which creates a file descriptor for accepting signals. This syscall inspired the name of the class template signalfd.
+
+   </body></html>
+

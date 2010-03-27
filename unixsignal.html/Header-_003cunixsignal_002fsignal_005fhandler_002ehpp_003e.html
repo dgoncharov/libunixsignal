@@ -1,0 +1,217 @@
+<html lang="en">
+<head>
+<title>Header &lt;unixsignal/signal_handler.hpp&gt; - libunixsignal 0.0.4 manual</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="libunixsignal 0.0.4 manual">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Header-_003cunixsignal_002fsignalfd_002ehpp_003e.html#Header-_003cunixsignal_002fsignalfd_002ehpp_003e" title="Header &lt;unixsignal/signalfd.hpp&gt;">
+<link rel="next" href="Acknowledgments.html#Acknowledgments" title="Acknowledgments">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+Copyright (C) 2009 Dmitry Goncharov.
+Distributed under the BSD license.
+
+Homepage github.com/dgoncharov/libunixsignal.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Header-%3cunixsignal%2fsignal_handler.hpp%3e"></a>
+<a name="Header-_003cunixsignal_002fsignal_005fhandler_002ehpp_003e"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Acknowledgments.html#Acknowledgments">Acknowledgments</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Header-_003cunixsignal_002fsignalfd_002ehpp_003e.html#Header-_003cunixsignal_002fsignalfd_002ehpp_003e">Header &lt;unixsignal/signalfd.hpp&gt;</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr>
+</div>
+
+<h2 class="chapter">3 Header &lt;unixsignal/signal_handler.hpp&gt;</h2>
+
+<p><b>Synopsis</b>
+
+<pre class="example">     namespace unixsignal {
+     
+     template &lt;
+         int S1, int S2 = 0, int S3 = 0, int S4 = 0, int S5 = 0,
+         int S6 = 0, int S7 = 0, int S8 = 0, int S9 = 0, int S10 = 0,
+         int S11 = 0, int S12 = 0, int S13 = 0, int S14 = 0, int S15 = 0,
+         int S16 = 0, int S17 = 0, int S18 = 0, int S19 = 0, int S20 = 0,
+         int S21 = 0, int S22 = 0, int S23 = 0, int S24 = 0, int S25 = 0,
+         int S26 = 0, int S27 = 0, int S28 = 0, int S29 = 0, int S30 = 0&gt;
+     class signal_handler
+     {
+     public:
+         explicit signal_handler(boost::asio::io_service&amp; ios);
+     
+         template &lt;typename Handler&gt;
+         void async_wait(Handler h);
+     };
+     }
+</pre>
+   <p><br>
+<b>Description</b>
+
+   <p>The class template signal_handler extends boost::asio with the ability to invoke a handler whenever a unix signal arrives.
+
+   <p>An instance of signal_handler can be associated with one or more signals specified by the template parameters S1, S2,... S30. 
+At least one signal has to be specified. Up to 30 signals can be associated with one signal_handler. 
+async_wait(), along with boost::asio::io_service event processing, can be used to asynchronously wait for the associated signals. 
+After one of the associated signals arrives, the handler supplied to async_wait() is invoked. 
+An instance of siginfo_t which describes the arrived signal will be passed to the handler.
+
+   <p>signal_handler is neither copyable nor assignable.
+
+   <p><br>
+<b>explicit signal_handler(boost::asio::io_service&amp; ios)</b>
+
+     <ul>
+<li><b>Effects</b>: Creates instances of signalfd and boost::asio::posix::stream_descriptor. All the effects of signalfd constructor.
+
+     <li><b>Postconditions</b>: this-&gt;async_wait() initiates an asynchronous wait for the signal.
+
+     <li><b>Throws</b>: Anything that signalfd constructor can throw. 
+</ul>
+
+   <p><br>
+<b>~signal_handler()</b>
+
+     <ul>
+<li><b>Effects</b>: signal_handler doesn't have an explicit desctructor. 
+However, when an object of signal_handler is destroyed an object of signalfd is also destroyed, so destruction of signal_handler has all the effects of destruction of signalfd.
+
+     <li><b>Postconditions</b>: All the postconditions of signalfd.
+
+     <li><b>Throws</b>: Will not throw. 
+</ul>
+
+   <p><br>
+<b>template &lt;typename Handler&gt; void async_wait(Handler h)</b>
+
+     <ul>
+<li><b>Effects</b>: Initiates an asynchronous wait against the associated signals and immediately returns. 
+For each call to async_wait(), the supplied handler will be called exactly once after one of the associated signals arrives. 
+The handler has to be of the following signature void handler(const boost::system::error_code&amp; error, siginfo_t const&amp;);
+The handler has to be copyable. 
+Invocation of the handler will be performed in a manner equivalent to using boost::asio::io_service::post().
+
+     <li><b>Postconditions</b>: A subsequent arrival of one of the associated signals will cause one invocation of the provided handler.
+
+     <li><b>Throws</b>: Anything that the underlying boost::asio::async_read() call can throw. Also, anything that the handler copy constructor can throw. 
+</ul>
+
+   <p><br>
+<b>Example</b>
+
+<pre class="example">     #include &lt;unixsignal/signal_handler.hpp&gt;
+     #include &lt;unistd.h&gt;
+     #include &lt;cstddef&gt;
+     #include &lt;cassert&gt;
+     #include &lt;iostream&gt;
+     #include &lt;iomanip&gt;
+     #include &lt;string&gt;
+     #include &lt;boost/bind.hpp&gt;
+     #include &lt;boost/system/error_code.hpp&gt;
+     #include &lt;boost/asio/io_service.hpp&gt;
+     #include &lt;boost/asio/posix/stream_descriptor.hpp&gt;
+     #include &lt;boost/asio/buffer.hpp&gt;
+     #include &lt;boost/asio/error.hpp&gt;
+     
+     using std::cout;
+     using std::cin;
+     using std::endl;
+     using std::cerr;
+     using std::flush;
+     
+     namespace ba = boost::asio;
+     namespace bap = boost::asio::posix;
+     namespace bs = boost::system;
+     
+     void on_signal(bs::error_code const&amp; err, siginfo_t const&amp; siginfo, int* invoked)
+     {
+         if (!err)
+             cout
+                 &lt;&lt; "signal #" &lt;&lt; siginfo.si_signo &lt;&lt; " received"
+                 &lt;&lt; endl &lt;&lt; "# " &lt;&lt; flush;
+         *invoked = 1;
+     }
+     
+     void on_stdin(
+         bs::error_code const&amp; err, char const* buf, std::size_t buflen, int* running)
+     {
+         if (!err)
+         {
+             assert(buflen &gt;= 1 &amp;&amp; "Incorrect usage of boost::asio");
+             cout
+                 &lt;&lt; "activity on stdin: " &lt;&lt; std::string(buf, buflen - 1)
+                 &lt;&lt; endl &lt;&lt; "# " &lt;&lt; flush;
+         }
+         else
+         {
+             if (ba::error::eof == err)
+             {
+                 cout &lt;&lt; "stdin closed." &lt;&lt; flush;
+                 *running = 0;
+             }
+             else
+                 cout &lt;&lt; "stdin error: " &lt;&lt; err &lt;&lt; endl;
+         }
+     }
+     
+     int main(int, char const* [])
+     {
+         ba::io_service ios;
+     
+         unixsignal::signal_handler&lt;SIGINT, SIGTERM&gt; sigint(ios);
+         unixsignal::signal_handler&lt;SIGHUP, SIGUSR1, SIGUSR2&gt; sighup(ios);
+     
+         bap::stream_descriptor std_in(ios, STDIN_FILENO);
+     
+         cout &lt;&lt; "Type to watch stdin activity\n"
+              &lt;&lt; "Send the following signals to watch the program react #"
+              &lt;&lt; SIGINT &lt;&lt; ", #" &lt;&lt; SIGTERM &lt;&lt; ", #"
+              &lt;&lt; SIGHUP &lt;&lt; ", #" &lt;&lt; SIGUSR1 &lt;&lt; ", #" &lt;&lt; SIGUSR2
+              &lt;&lt; "\nUse ^D to exit"
+              &lt;&lt; endl &lt;&lt; "# " &lt;&lt; flush;
+     
+         int running = 1;
+         int intf = 1;
+         int hupf = 1;
+         while (running)
+         {
+             ios.reset();
+     
+             if (intf)
+             {
+                 intf = 0;
+                 sigint.async_wait(boost::bind(on_signal, _1, _2, &amp;intf));
+             }
+             if (hupf)
+             {
+                 hupf = 0;
+                 sighup.async_wait(boost::bind(on_signal, _1, _2, &amp;hupf));
+             }
+     
+             char buf[1024];
+             std_in.async_read_some(
+                 ba::buffer(buf, sizeof buf),
+                 boost::bind(on_stdin, _1, buf, _2, &amp;running));
+     
+             ios.run_one();
+         }
+         cout &lt;&lt; " Bye" &lt;&lt; endl;
+     }
+</pre>
+   </body></html>
+
