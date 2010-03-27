@@ -1,3 +1,8 @@
+0.0.5
+    2010.03.28 Online documentation is available here
+    http://dgoncharov.github.com/libunixsignal.
+    README updated accordingly.
+
 0.0.4
     2010.02.13 The file descriptors of the pipe have the FD_CLOEXEC flag set.
 		Documentation updated.
