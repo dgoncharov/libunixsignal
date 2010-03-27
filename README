@@ -4,7 +4,7 @@ and have the file descriptor ready for reading whenever an associated unix signa
 This ability lets you multiplex unix signals just like file descriptors.
 This library also extends boost::asio with the ability to invoke a handler whenever a unix signal arrives.
 
-Online documentation is available on dgoncharov.github.com/libunixsignal.
+Online documentation is available here http://dgoncharov.github.com/libunixsignal.
 
 Motivation:
 The library lets the user have a unix signal handler of an arbitrary signature. 
