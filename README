@@ -1,0 +1,38 @@
+Introduction:
+This library lets you associate a unix signal with a file descriptor
+and have the file descriptor ready for reading whenever an associated unix signal arrives.
+This ability lets you multiplex unix signals just like file descriptors.
+This library also extends boost::asio with the ability to invoke a handler whenever a unix signal arrives.
+
+Online documentation is available on dgoncharov.github.com/libunixsignal.
+
+Motivation:
+The library lets the user have a unix signal handler of an arbitrary signature. 
+The library also removes the "async-signal safe calls" restriction from a handler of a unix signal. 
+
+Contents:
+This is a header only library. The library contains two files signalfd.hpp and signal_handler.hpp.
+signalfd.hpp defines class template signalfd.
+example/sigselect.cpp contains an example of how signalfd is supposed to be used.
+signal_handler.hpp contains class template signal_hander which is an extension to boost::asio.
+example/sighandler.cpp contains an example of how signal_handler is supposed to be used.
+
+How to install:
+Since this is a header only library there is no need to compile it.
+Type ./configure; make install to install the library.
+This will create the directory unixsignal/ and place signalfd.hpp and signal_handler.hpp in it.
+By default the directory unixsignal gets created in /usr/local/include.
+Type make uninstall to remove the library installed header files.
+Type make sample to build the samples.
+This will build sigselect from example/sigselect.cpp and sighandler from example/sighandler.cpp.
+You can run the examples by typing example/sigselect or example/sighandler.
+Type make check to run the unit test.
+Type make info, make html or make pdf to build the texinfo, html or pdf documentation.
+
+The original proposal on the boost mail list can be found here http://lists.boost.org/Archives/boost/2009/03/149890.php
+
+Tested on
+-amd64 freebsd 7.2 gcc-4.1.2.
+-x86_64 linux 2.6.30-gentoo-r4 gcc-4.4.1, 2.6.32-gentoo gcc-4.4.2, 2.6.33-gentoo gcc-4.4.3.
+-i686 linux 2.6.31-gentoo gcc-4.4.1, 2.6.32-gentoo gcc-4.4.3, 2.6.33-gentoo gcc-4.4.3.
+
