@@ -150,8 +150,8 @@ Creates a file descritor and assiciates it with the specified signals.
              cerr &lt;&lt; "Cannot read: read(): " &lt;&lt; std::strerror(errno) &lt;&lt; endl;
          else if (static_cast&lt;std::size_t&gt;(s) &lt; sizeof siginfo)
              cerr
-     	    &lt;&lt; "\nCannot read siginfo_t. Read " &lt;&lt; s &lt;&lt; " bytes"
-     	    &lt;&lt; endl;
+                 &lt;&lt; "\nCannot read siginfo_t. Read " &lt;&lt; s &lt;&lt; " bytes"
+                 &lt;&lt; endl;
          else
              cout &lt;&lt; " #" &lt;&lt; siginfo.si_signo &lt;&lt; endl;
      }
