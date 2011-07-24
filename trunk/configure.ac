@@ -70,10 +70,10 @@ BOOST_NOT_FOUND_ERRMSG="You need to install the boost libraries.\
 save_LIBS="$LIBS"
 LIBS="$LIBS -lpthread"
 AC_MSG_CHECKING([for pthread library])
-AC_LINK_IFELSE([
+AC_LINK_IFELSE([AC_LANG_SOURCE([
 #include <pthread.h>
 int main() {pthread_self(); return 0;}
-],
+])],
     [PTHREAD_LIB="-lpthread"
     AC_MSG_RESULT([$PTHREAD_LIB])],
     [AC_MSG_RESULT([not found])
@@ -92,10 +92,10 @@ AC_HELP_STRING(
 save_LIBS="$LIBS"
 LIBS="$LIBS -lboost_system$with_boost_libs_suffix"
 AC_MSG_CHECKING([for Boost.System library])
-AC_LINK_IFELSE([
+AC_LINK_IFELSE([AC_LANG_SOURCE([
     #include <boost/system/system_error.hpp>
     int main() {boost::system::system_error(boost::system::error_code(0, boost::system::get_system_category())); return 0;}
-],
+])],
     [BOOST_SYSTEM_LIB="-lboost_system$with_boost_libs_suffix"
     AC_MSG_RESULT([$BOOST_SYSTEM_LIB])],
     [AC_MSG_RESULT([not found])
@@ -106,12 +106,12 @@ LIBS="$save_LIBS"
 save_LIBS="$LIBS"
 LIBS="$LIBS -lboost_unit_test_framework$with_boost_libs_suffix"
 AC_MSG_CHECKING([for Boost.Test library])
-AC_LINK_IFELSE([
+AC_LINK_IFELSE([AC_LANG_SOURCE([
     #define BOOST_TEST_DYN_LINK
     #include <boost/test/unit_test.hpp>
     bool init_unit_test() { return true;}
     int main(int argc, char** argv) { boost::unit_test::unit_test_main(&init_unit_test, argc, argv); return 0;}
-],
+])],
     [BOOST_UNIT_TEST_FRAMEWORK_LIB="-lboost_unit_test_framework$with_boost_libs_suffix"
     AC_MSG_RESULT([$BOOST_UNIT_TEST_FRAMEWORK_LIB])],
     [AC_MSG_RESULT([not found])
