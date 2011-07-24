@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.61])
 AC_INIT([], [], [dgoncharov@users.sf.net])
-AM_INIT_AUTOMAKE([libunixsignal], ["0.0.5"])
+AM_INIT_AUTOMAKE([libunixsignal], ["0.0.6"])
 AC_CONFIG_SRCDIR([include/unixsignal/signalfd.hpp])
 AC_CONFIG_HEADERS([config.h])
 
